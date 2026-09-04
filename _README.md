@@ -1,10 +1,10 @@
-# A1 Pomofocus
+# Fluent Pomofocus
 
 <context>
-For underlying architecture specifications, state management, API signatures, and developer recipes, please refer to: [_Architecture.md](file:///c:/ObsidianDev/plugins/A1Pomofocus/_Architecture.md).
+For underlying architecture specifications, state management, API signatures, and developer recipes, please refer to: [_Architecture.md](file:///C:/ObsidianPublish/fluent-pomofocus/_Architecture.md).
 </context>
 
-**A1 Pomofocus** brings a complete, lag-free recreation of the popular [Pomofocus.io](https://pomofocus.io) web app directly into Obsidian as a native desktop plugin. It eliminates browser background tab freezing and resetting, provides high-fidelity synthesized system audio chimes, native desktop notifications, and supports independent detached floating mini-windows ("Small Window").
+**Fluent Pomofocus** brings a complete, lag-free recreation of the popular [Pomofocus.io](https://pomofocus.io) web app directly into Obsidian as a native desktop plugin. It eliminates browser background tab freezing and resetting, provides high-fidelity synthesized system audio chimes, native desktop notifications, and supports independent detached floating mini-windows ("Small Window").
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Obsidian Version](https://img.shields.io/badge/Obsidian-v1.0.0%2B-purple.svg)
@@ -15,8 +15,8 @@ For underlying architecture specifications, state management, API signatures, an
 ## 🚀 Layer 1: Quick Start Guide
 
 ### 🛠️ Installation & Activation
-1. The plugin is linked to your vault via Junction at `C:\ObsidianNote\.obsidian\plugins\A1Pomofocus`.
-2. Open Obsidian -> **Settings** -> **Community Plugins** -> Enable **A1 Pomofocus**.
+1. The plugin is linked to your vault via Twin Junction at `C:\ObsidianNote\.obsidian\plugins\fluent-pomofocus` -> `C:\ObsidianPublish\fluent-pomofocus`.
+2. Open Obsidian -> **Settings** -> **Community Plugins** -> Enable **Fluent Pomofocus**.
 3. Click the timer icon in the left ribbon or run command `Open Pomofocus in Sidebar`.
 
 ### 🎮 Primary Controls Cheatsheet
@@ -37,7 +37,7 @@ For underlying architecture specifications, state management, API signatures, an
 ## 📖 Layer 2: Feature Specifications
 
 ### ⏱️ Drift-Free Wall-Clock Timer
-- **No Background Sleeping**: Traditional browser timers use `setInterval` which gets throttled or killed when tabs lose focus. A1 Pomofocus calculates `targetEndTime - Date.now()`, ensuring absolute precision even through laptop sleep and wake cycles.
+- **No Background Sleeping**: Traditional browser timers use `setInterval` which gets throttled or killed when tabs lose focus. Fluent Pomofocus calculates `targetEndTime - Date.now()`, ensuring absolute precision even through laptop sleep and wake cycles.
 - **Three Core Modes**:
   - `Pomodoro`: Focus work period (default 50 mins).
   - `Short Break`: Relax and recharge (default 10 mins).

@@ -1,14 +1,14 @@
-# A1 Pomofocus — Architectural Specification
+# Fluent Pomofocus — Architectural Specification
 
 <context>
-For user documentation and usage instructions, please refer to: [_README.md](file:///c:/ObsidianDev/plugins/A1Pomofocus/_README.md).
+For user documentation and usage instructions, please refer to: [_README.md](file:///C:/ObsidianPublish/fluent-pomofocus/_README.md).
 </context>
 
 ## 1. System Overview & Data Flow
 
 ```mermaid
 graph TD
-    Plugin[A1PomofocusPlugin main.ts] --> TimerService[TimerService]
+    Plugin[FluentPomofocusPlugin main.ts] --> TimerService[TimerService]
     Plugin --> SoundService[SoundService]
     Plugin --> NotificationService[NotificationService]
     Plugin --> ViewWrapper[PomofocusViewWrapper ItemView]
@@ -34,7 +34,8 @@ graph TD
 
 ## 2. Directory Layout
 ```
-c:\ObsidianDev\plugins\A1Pomofocus\
+C:\ObsidianPublish\fluent-pomofocus\
+(Twin Junction: C:\ObsidianDev\plugins\fluent-pomofocus\)
 ├── manifest.json              # Obsidian plugin metadata
 ├── package.json               # Dependencies and build scripts
 ├── tsconfig.json              # TypeScript compiler configuration (ES2020)
@@ -62,7 +63,7 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 
 | Component | Responsible For | MUST NOT Contain |
 | :--- | :--- | :--- |
-| `A1PomofocusPlugin` | Lifecycle, settings broadcast SSOT, view registration, popout leaf trigger | Direct UI rendering, audio synthesis logic |
+| `FluentPomofocusPlugin` | Lifecycle, settings broadcast SSOT, view registration, popout leaf trigger | Direct UI rendering, audio synthesis logic |
 | `TimerService` | Absolute timestamp calculation, mode transitions, countdown tick loop | DOM manipulation, settings persistence IO |
 | `SoundService` | Audio buffer fetching, local vault caching, GainNode amplification, dynamic compressor, fallback synthesis | Timer state, UI bindings |
 | `NotificationService` | HTML5 Notification API and Obsidian Notice toasts | Audio playback, timer state |
@@ -81,7 +82,7 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 | `TimerService.start` | `() => void` | Sets `isRunning = true`, initializes `targetEndTime`, starts 200ms `setInterval` |
 | `TimerService.pause` | `() => void` | Sets `isRunning = false`, computes remaining time from delta, stops interval |
 | `SoundService.playSound` | `(type: SoundType, volumePercent: number, repeat: number) => Promise<void>` | Plays cached decoded AudioBuffer or amplified synthesized fallback |
-| `SoundService.preloadAll` | `() => Promise<void>` | Asynchronously caches sound files to local vault adapter `.obsidian/plugins/A1Pomofocus/sounds/` |
+| `SoundService.preloadAll` | `() => Promise<void>` | Asynchronously caches sound files to local vault adapter `.obsidian/plugins/fluent-pomofocus/sounds/` |
 
 ---
 
@@ -103,7 +104,7 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 4. **Clean Hit-Testing**: The modal explicitly avoids Chromium `backdrop-filter` rendering bugs by using clean RGBA backdrop layering and isolated pointer events.
 
 ### Invariant 4: Dual-Engine High-Fidelity Audio & Loudness Architecture
-1. **Official High-Definition Samples**: Downloads and caches real acoustic audio for Wood (木鱼), Bell (清脆钟鸣), Bird (自然鸟鸣), Digital (电子闹铃), and Kitchen (机械闹钟) into vault storage (`.obsidian/plugins/A1Pomofocus/sounds/`) for zero-latency offline playback.
+1. **Official High-Definition Samples**: Downloads and caches real acoustic audio for Wood (木鱼), Bell (清脆钟鸣), Bird (自然鸟鸣), Digital (电子闹铃), and Kitchen (机械闹钟) into vault storage (`.obsidian/plugins/fluent-pomofocus/sounds/`) for zero-latency offline playback.
 2. **200% Gain Amplification & Dynamics Limiting**: Routes sound through `AudioContext` with `GainNode` scaling up to 2.0x and `DynamicsCompressorNode` (-12dB threshold, 10:1 ratio, 3ms attack) to ensure alerts are loud and crisp across low-power laptop speakers without clipping or distortion.
 3. **Multi-Harmonic Synthesized Fallback**: If offline or before initial download finishes, instant synthesized multi-harmonic oscillators ensure notifications are never missed.
 4. **Interactive Volume Control & Sequential Repeat Engine**: Setting modal provides 0-100% slider and repeat counter (1-10) with live preview on slider release, dropdown change, and number input. Playback employs an interruptible `onended` sequential repeat loop with a 100ms natural acoustic cadence, while `stopSound()` guarantees instant cutoff without overlapping when re-triggered or closed.
