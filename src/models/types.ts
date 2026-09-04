@@ -2,7 +2,7 @@ export const VIEW_TYPE_POMOFOCUS = "a1-pomofocus-view";
 
 export type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 
-export type SoundType = "wood" | "bell" | "digital" | "none";
+export type SoundType = "wood" | "bell" | "digital" | "bird" | "kitchen" | "none";
 
 export interface TaskItem {
   id: string;
@@ -60,7 +60,7 @@ export const DEFAULT_SETTINGS: PomofocusSettings = {
   checkToBottom: true,
 
   alarmSound: "wood",
-  alarmVolume: 50,
+  alarmVolume: 80,
   alarmRepeat: 2,
   focusSound: "none",
 

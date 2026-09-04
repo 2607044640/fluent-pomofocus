@@ -83,7 +83,8 @@ export default class A1PomofocusPlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    this.soundService = new SoundService();
+    this.soundService = new SoundService(this.app, this.manifest);
+    void this.soundService.preloadAll();
     this.timerService = new TimerService(this.settings, this.soundService);
     this.timerService.onStateChange = () => {
       this.settings.currentMode = this.timerService.getState().mode;

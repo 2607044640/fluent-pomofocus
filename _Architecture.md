@@ -64,7 +64,7 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 | :--- | :--- | :--- |
 | `A1PomofocusPlugin` | Lifecycle, settings broadcast SSOT, view registration, popout leaf trigger | Direct UI rendering, audio synthesis logic |
 | `TimerService` | Absolute timestamp calculation, mode transitions, countdown tick loop | DOM manipulation, settings persistence IO |
-| `SoundService` | Web Audio API node creation, decay envelopes, sound generation | File IO, timer state, UI bindings |
+| `SoundService` | Audio buffer fetching, local vault caching, GainNode amplification, dynamic compressor, fallback synthesis | Timer state, UI bindings |
 | `NotificationService` | HTML5 Notification API and Obsidian Notice toasts | Audio playback, timer state |
 | `PomofocusView.svelte` | Timer visualization, interactive task operations, small window trigger | Audio synthesis math, standalone timer interval |
 | `SettingModal.svelte` | In-view configuration editing, real-time autosave dispatch, audio preview | Direct file storage operations |
@@ -80,7 +80,8 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 | `TimerService.updateSettings` | `(newSettings: PomofocusSettings) => void` | Updates internal config; if paused, resets `remainingSeconds` and invokes `notify()` |
 | `TimerService.start` | `() => void` | Sets `isRunning = true`, initializes `targetEndTime`, starts 200ms `setInterval` |
 | `TimerService.pause` | `() => void` | Sets `isRunning = false`, computes remaining time from delta, stops interval |
-| `SoundService.playSound` | `(type: SoundType, volumePercent: number, repeat: number) => void` | Instantiates/resumes `AudioContext`, schedules oscillator nodes |
+| `SoundService.playSound` | `(type: SoundType, volumePercent: number, repeat: number) => Promise<void>` | Plays cached decoded AudioBuffer or amplified synthesized fallback |
+| `SoundService.preloadAll` | `() => Promise<void>` | Asynchronously caches sound files to local vault adapter `.obsidian/plugins/A1Pomofocus/sounds/` |
 
 ---
 
@@ -100,4 +101,10 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 2. **Instant Live Autosave**: Any modified preference (timer durations, automation switches, alarm sound/volume/repeat, color themes, dark mode) takes effect immediately via `syncChanges` without requiring an Obsidian restart or manual OK button confirmation.
 3. **Timer Recalibration**: Active paused states immediately recalibrate the countdown timer display to newly chosen mode durations.
 4. **Clean Hit-Testing**: The modal explicitly avoids Chromium `backdrop-filter` rendering bugs by using clean RGBA backdrop layering and isolated pointer events.
+
+### Invariant 4: Dual-Engine High-Fidelity Audio & Loudness Architecture
+1. **Official High-Definition Samples**: Downloads and caches real acoustic audio for Wood (木鱼), Bell (清脆钟鸣), Bird (自然鸟鸣), Digital (电子闹铃), and Kitchen (机械闹钟) into vault storage (`.obsidian/plugins/A1Pomofocus/sounds/`) for zero-latency offline playback.
+2. **200% Gain Amplification & Dynamics Limiting**: Routes sound through `AudioContext` with `GainNode` scaling up to 2.0x and `DynamicsCompressorNode` (-12dB threshold, 10:1 ratio, 3ms attack) to ensure alerts are loud and crisp across low-power laptop speakers without clipping or distortion.
+3. **Multi-Harmonic Synthesized Fallback**: If offline or before initial download finishes, instant synthesized multi-harmonic oscillators ensure notifications are never missed.
+4. **Interactive Volume Control**: Setting modal provides 0-100% slider with live preview triggers on release and dropdown selection.
 <!-- END USER-SPECIFIED -->

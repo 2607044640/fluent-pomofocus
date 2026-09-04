@@ -206,11 +206,19 @@
         <div class="pomo-select-row">
           <span>Alarm Sound</span>
           <div class="pomo-sound-controls">
-            <select bind:value={localSettings.alarmSound} on:change={() => syncChanges(true)}>
-              <option value="wood">Wood</option>
-              <option value="bell">Bell</option>
-              <option value="digital">Digital</option>
-              <option value="none">None</option>
+            <select
+              bind:value={localSettings.alarmSound}
+              on:change={() => {
+                syncChanges(true);
+                testSound();
+              }}
+            >
+              <option value="wood">Wood (木块/木鱼)</option>
+              <option value="bell">Bell (清脆钟鸣)</option>
+              <option value="bird">Bird (自然鸟鸣)</option>
+              <option value="digital">Digital (电子闹铃)</option>
+              <option value="kitchen">Kitchen (机械闹钟)</option>
+              <option value="none">None (静音)</option>
             </select>
             <button class="pomo-test-sound-btn" on:click={testSound} title="Test Sound">
               <Volume2 size={16} />
@@ -219,14 +227,17 @@
         </div>
 
         <div class="pomo-slider-row">
-          <span class="pomo-slider-val">{localSettings.alarmVolume}</span>
+          <span class="pomo-slider-val">{localSettings.alarmVolume}%</span>
           <input
             type="range"
             min="0"
             max="100"
             bind:value={localSettings.alarmVolume}
             on:input={() => syncChanges(false)}
-            on:change={() => syncChanges(true)}
+            on:change={() => {
+              syncChanges(true);
+              testSound();
+            }}
           />
         </div>
 
@@ -510,7 +521,9 @@
   .pomo-slider-val {
     font-size: 12px;
     color: #888;
-    width: 24px;
+    width: 38px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 
   .pomo-slider-row input[type="range"] {
