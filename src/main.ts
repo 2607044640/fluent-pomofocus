@@ -34,6 +34,7 @@ export class PomofocusViewWrapper extends ItemView {
       target: container,
       props: {
         app: this.app,
+        plugin: this.plugin,
         settings: this.plugin.settings,
         timerService: this.plugin.timerService,
         soundService: this.plugin.soundService,
@@ -55,6 +56,30 @@ export default class A1PomofocusPlugin extends Plugin {
   settings: PomofocusSettings = DEFAULT_SETTINGS;
   soundService!: SoundService;
   timerService!: TimerService;
+  private settingsListeners: Set<(settings: PomofocusSettings, source?: string) => void> = new Set();
+
+  public onSettingsChange(listener: (settings: PomofocusSettings, source?: string) => void): () => void {
+    this.settingsListeners.add(listener);
+    return () => {
+      this.settingsListeners.delete(listener);
+    };
+  }
+
+  public async updateAndBroadcastSettings(
+    newSettings: Partial<PomofocusSettings>,
+    source?: string
+  ): Promise<void> {
+    Object.assign(this.settings, newSettings);
+    await this.saveSettings();
+    this.timerService.updateSettings(this.settings);
+    for (const listener of this.settingsListeners) {
+      try {
+        listener(this.settings, source);
+      } catch (e) {
+        console.error("Error in settings listener:", e);
+      }
+    }
+  }
 
   async onload(): Promise<void> {
     await this.loadSettings();

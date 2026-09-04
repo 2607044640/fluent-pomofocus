@@ -4,6 +4,7 @@ import { SoundType } from "./models/types";
 
 export class A1PomofocusSettingTab extends PluginSettingTab {
   plugin: A1PomofocusPlugin;
+  private unsubscribeSettings: (() => void) | null = null;
 
   constructor(app: App, plugin: A1PomofocusPlugin) {
     super(app, plugin);
@@ -11,6 +12,15 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
   }
 
   display(): void {
+    if (!this.unsubscribeSettings) {
+      this.unsubscribeSettings = this.plugin.onSettingsChange((_, source) => {
+        // Only re-render if update came from elsewhere (e.g. SettingModal) to avoid stealing input focus
+        if (source !== "settingTab") {
+          this.display();
+        }
+      });
+    }
+
     const { containerEl } = this;
     containerEl.empty();
 
@@ -30,9 +40,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             const num = parseInt(val, 10);
             if (!isNaN(num) && num > 0) {
-              this.plugin.settings.pomoTime = num;
-              await this.plugin.saveSettings();
-              this.plugin.timerService.updateSettings(this.plugin.settings);
+              await this.plugin.updateAndBroadcastSettings({ pomoTime: num }, "settingTab");
             }
           })
       );
@@ -46,9 +54,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             const num = parseInt(val, 10);
             if (!isNaN(num) && num > 0) {
-              this.plugin.settings.shortBreakTime = num;
-              await this.plugin.saveSettings();
-              this.plugin.timerService.updateSettings(this.plugin.settings);
+              await this.plugin.updateAndBroadcastSettings({ shortBreakTime: num }, "settingTab");
             }
           })
       );
@@ -62,9 +68,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             const num = parseInt(val, 10);
             if (!isNaN(num) && num > 0) {
-              this.plugin.settings.longBreakTime = num;
-              await this.plugin.saveSettings();
-              this.plugin.timerService.updateSettings(this.plugin.settings);
+              await this.plugin.updateAndBroadcastSettings({ longBreakTime: num }, "settingTab");
             }
           })
       );
@@ -78,9 +82,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             const num = parseInt(val, 10);
             if (!isNaN(num) && num > 0) {
-              this.plugin.settings.longBreakInterval = num;
-              await this.plugin.saveSettings();
-              this.plugin.timerService.updateSettings(this.plugin.settings);
+              await this.plugin.updateAndBroadcastSettings({ longBreakInterval: num }, "settingTab");
             }
           })
       );
@@ -97,9 +99,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.autoStartBreaks)
           .onChange(async (val) => {
-            this.plugin.settings.autoStartBreaks = val;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ autoStartBreaks: val }, "settingTab");
           })
       );
 
@@ -110,9 +110,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.autoStartPomodoros)
           .onChange(async (val) => {
-            this.plugin.settings.autoStartPomodoros = val;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ autoStartPomodoros: val }, "settingTab");
           })
       );
 
@@ -128,9 +126,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.autoCheckTasks)
           .onChange(async (val) => {
-            this.plugin.settings.autoCheckTasks = val;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ autoCheckTasks: val }, "settingTab");
           })
       );
 
@@ -141,9 +137,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.checkToBottom)
           .onChange(async (val) => {
-            this.plugin.settings.checkToBottom = val;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ checkToBottom: val }, "settingTab");
           })
       );
 
@@ -163,9 +157,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .addOption("none", "None (Mute)")
           .setValue(this.plugin.settings.alarmSound)
           .onChange(async (val) => {
-            this.plugin.settings.alarmSound = val as SoundType;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ alarmSound: val as SoundType }, "settingTab");
           })
       )
       .addButton((btn) =>
@@ -190,9 +182,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.alarmVolume)
           .setDynamicTooltip()
           .onChange(async (val) => {
-            this.plugin.settings.alarmVolume = val;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ alarmVolume: val }, "settingTab");
           })
       );
 
@@ -208,9 +198,8 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .addOption("5", "5 times")
           .setValue(String(this.plugin.settings.alarmRepeat))
           .onChange(async (val) => {
-            this.plugin.settings.alarmRepeat = parseInt(val, 10) || 1;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            const rep = parseInt(val, 10) || 1;
+            await this.plugin.updateAndBroadcastSettings({ alarmRepeat: rep }, "settingTab");
           })
       );
 
@@ -229,9 +218,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
           .addOption("blue", "Deep Ocean Blue")
           .setValue(this.plugin.settings.colorTheme)
           .onChange(async (val) => {
-            this.plugin.settings.colorTheme = val as "teal" | "green" | "blue";
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ colorTheme: val as "teal" | "green" | "blue" }, "settingTab");
           })
       );
 
@@ -242,10 +229,16 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.darkModeWhenRunning)
           .onChange(async (val) => {
-            this.plugin.settings.darkModeWhenRunning = val;
-            await this.plugin.saveSettings();
-            this.plugin.timerService.updateSettings(this.plugin.settings);
+            await this.plugin.updateAndBroadcastSettings({ darkModeWhenRunning: val }, "settingTab");
           })
       );
+  }
+
+  hide(): void {
+    if (this.unsubscribeSettings) {
+      this.unsubscribeSettings();
+      this.unsubscribeSettings = null;
+    }
+    super.hide();
   }
 }

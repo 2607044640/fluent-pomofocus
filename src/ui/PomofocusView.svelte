@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { App } from "obsidian";
+  import type A1PomofocusPlugin from "../main";
   import { PomofocusSettings, TaskItem, TimerMode } from "../models/types";
   import { TimerService, TimerState } from "../services/TimerService";
   import { SoundService } from "../services/SoundService";
@@ -17,6 +18,7 @@
 
   export let app: App | undefined = undefined;
   if (app) { /* referenced */ }
+  export let plugin: A1PomofocusPlugin;
   export let settings: PomofocusSettings;
   export let timerService: TimerService;
   export let soundService: SoundService;
@@ -25,6 +27,7 @@
 
   let timerState: TimerState = timerService.getState();
   let unsubscribeTimer: (() => void) | null = null;
+  let unsubscribeSettings: (() => void) | null = null;
 
   let showSettingModal: boolean = false;
   let showTaskMenu: boolean = false;
@@ -35,6 +38,10 @@
   onMount(() => {
     unsubscribeTimer = timerService.subscribe((state) => {
       timerState = state;
+    });
+
+    unsubscribeSettings = plugin.onSettingsChange((newSettings) => {
+      settings = { ...newSettings };
     });
 
     timerService.onPomodoroComplete = () => {
@@ -59,6 +66,9 @@
   onDestroy(() => {
     if (unsubscribeTimer) {
       unsubscribeTimer();
+    }
+    if (unsubscribeSettings) {
+      unsubscribeSettings();
     }
   });
 
@@ -164,10 +174,8 @@
     void onSaveSettings();
   }
 
-  function handleSaveModal(e: CustomEvent<PomofocusSettings>) {
-    settings = { ...settings, ...e.detail };
-    timerService.updateSettings(settings);
-    void onSaveSettings();
+  async function handleSaveModal(e: CustomEvent<PomofocusSettings>) {
+    await plugin.updateAndBroadcastSettings(e.detail, "modal");
   }
 </script>
 

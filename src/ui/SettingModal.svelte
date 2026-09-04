@@ -16,6 +16,10 @@
   // Local copy to edit
   let localSettings: PomofocusSettings = JSON.parse(JSON.stringify(settings));
 
+  $: if (settings) {
+    localSettings = JSON.parse(JSON.stringify(settings));
+  }
+
   function handleSave() {
     dispatch("save", localSettings);
     dispatch("close");
