@@ -273,6 +273,13 @@
         <div class="pomo-theme-swatches">
           <span>Color Themes</span>
           <div class="pomo-swatches">
+                        <button
+              class="pomo-swatch obsidian"
+              class:selected={localSettings.colorTheme === "obsidian"}
+              on:click={() => { localSettings.colorTheme = "obsidian"; syncChanges(true); }}
+              aria-label="Obsidian Theme"
+              title="跟随 Obsidian 主题"
+            ></button>
             <button
               class="pomo-swatch teal"
               class:selected={localSettings.colorTheme === "teal"}
@@ -554,6 +561,10 @@
     border: 2px solid transparent;
     cursor: pointer;
     pointer-events: auto;
+  }
+  .pomo-swatch.obsidian {
+    background: var(--interactive-accent, #7c3aed);
+    border: 2px solid var(--background-modifier-border, #444);
   }
   .pomo-swatch.teal { background: #265559; }
   .pomo-swatch.green { background: #356859; }
