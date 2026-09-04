@@ -36,6 +36,7 @@ export class PomofocusViewWrapper extends ItemView {
         app: this.app,
         settings: this.plugin.settings,
         timerService: this.plugin.timerService,
+        soundService: this.plugin.soundService,
         onSaveSettings: () => this.plugin.saveSettings(),
         onOpenSmallWindow: () => this.plugin.openPopoutWindow(),
       },
