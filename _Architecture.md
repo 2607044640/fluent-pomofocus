@@ -11,9 +11,9 @@ graph TD
     Plugin[A1PomofocusPlugin main.ts] --> TimerService[TimerService]
     Plugin --> SoundService[SoundService]
     Plugin --> NotificationService[NotificationService]
+    Plugin --> SettingTab[A1PomofocusSettingTab settings.ts]
     Plugin --> ViewWrapper[PomofocusViewWrapper ItemView]
     ViewWrapper --> SvelteRoot[PomofocusView.svelte]
-    SvelteRoot --> Modal[SettingModal.svelte]
     TimerService --> SoundService
     TimerService --> NotificationService
 ```
@@ -36,6 +36,7 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 ├── _Architecture.md           # Architecture specifications
 └── src/
     ├── main.ts                # Plugin entry point & ItemView registration
+    ├── settings.ts            # Native Obsidian PluginSettingTab
     ├── declarations.d.ts      # CSS and Svelte ambient declarations
     ├── styles.css             # Base leaf styling
     ├── models/
@@ -45,8 +46,7 @@ c:\ObsidianDev\plugins\A1Pomofocus\
     │   ├── TimerService.ts    # Drift-free timer state machine
     │   └── NotificationService.ts # Windows + in-app notice dispatcher
     └── ui/
-        ├── PomofocusView.svelte # Main UI (Timer card + Task list)
-        └── SettingModal.svelte  # Preferences modal
+        └── PomofocusView.svelte # Main UI (Timer card + Task list)
 ```
 
 ---

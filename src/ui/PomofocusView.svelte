@@ -3,10 +3,7 @@
   import { App } from "obsidian";
   import { PomofocusSettings, TaskItem, TimerMode } from "../models/types";
   import { TimerService, TimerState } from "../services/TimerService";
-  import { SoundService } from "../services/SoundService";
-  import SettingModal from "./SettingModal.svelte";
   import {
-    Settings as SettingsIcon,
     ExternalLink,
     CheckCircle2,
     Plus,
@@ -19,14 +16,12 @@
   if (app) { /* referenced */ }
   export let settings: PomofocusSettings;
   export let timerService: TimerService;
-  export let soundService: SoundService;
   export let onSaveSettings: () => Promise<void>;
   export let onOpenSmallWindow: () => void;
 
   let timerState: TimerState = timerService.getState();
   let unsubscribeTimer: (() => void) | null = null;
 
-  let showSettingModal: boolean = false;
   let showTaskMenu: boolean = false;
   let isAddingTask: boolean = false;
   let newTaskTitle: string = "";
@@ -163,12 +158,6 @@
     showTaskMenu = false;
     void onSaveSettings();
   }
-
-  function handleSaveModal(e: CustomEvent<PomofocusSettings>) {
-    settings = { ...settings, ...e.detail };
-    timerService.updateSettings(settings);
-    void onSaveSettings();
-  }
 </script>
 
 <div
@@ -185,10 +174,6 @@
       <button class="pomo-btn-nav" on:click={onOpenSmallWindow} title="Open Small Window">
         <ExternalLink size={15} />
         <span class="pomo-btn-text">Small Window</span>
-      </button>
-      <button class="pomo-btn-nav" on:click={() => (showSettingModal = true)} title="Settings">
-        <SettingsIcon size={15} />
-        <span class="pomo-btn-text">Setting</span>
       </button>
     </div>
   </header>
@@ -334,16 +319,6 @@
       {/if}
     </section>
   </main>
-
-  {#if showSettingModal}
-    <SettingModal
-      {settings}
-      {soundService}
-      {onOpenSmallWindow}
-      on:close={() => (showSettingModal = false)}
-      on:save={handleSaveModal}
-    />
-  {/if}
 </div>
 
 <style>

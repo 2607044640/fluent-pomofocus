@@ -28,7 +28,7 @@ For underlying architecture specifications, state management, API signatures, an
 | **Skip Mode** | Button: `>>` (Next to start button) | Manually advances to next break or pomodoro |
 | **Switch Modes** | Tabs: `Pomodoro`, `Short Break`, `Long Break` | Switches period and adapts theme color |
 | **Add Task** | Button: `+ Add Task` | Inserts inline task with estimated pomodoro count |
-| **Configure** | Top Nav: `Setting` button | Opens comprehensive timer & sound preferences |
+| **Configure** | Obsidian Settings -> `A1 Pomofocus` | Native settings panel for durations, sounds, themes, and automation |
 </layer_1_quick_start>
 
 ---
