@@ -43,6 +43,7 @@
         const active = settings.tasks.find((t) => t.id === settings.activeTaskId);
         if (active) {
           active.actPomodoros += 1;
+          settings.tasks = [...settings.tasks];
           if (settings.autoCheckTasks && active.actPomodoros >= active.estPomodoros) {
             active.completed = true;
             if (settings.checkToBottom) {

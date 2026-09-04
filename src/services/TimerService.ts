@@ -76,6 +76,7 @@ export class TimerService {
     this.settings = newSettings;
     if (!this.isRunning) {
       this.initDurationForMode(this.mode);
+      this.notify();
     }
   }
 
