@@ -144,7 +144,7 @@ export class SoundService {
     }
 
     const ctx = this.getContext();
-    const pluginDir = this.manifest?.dir || ".obsidian/plugins/A1Pomofocus";
+    const pluginDir = this.manifest?.dir || ".obsidian/plugins/fluent-pomofocus";
     const soundsDir = `${pluginDir}/sounds`;
     const filePath = `${soundsDir}/${meta.filename}`;
 

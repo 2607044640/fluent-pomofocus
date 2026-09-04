@@ -1,5 +1,5 @@
 {
-  "name": "a1-pomofocus",
+  "name": "fluent-pomofocus",
   "version": "1.0.0",
   "description": "A Pomofocus recreation for Obsidian with system sound notifications, drift-free timer, and popout mini-window.",
   "main": "main.js",
@@ -17,7 +17,6 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "builtin-modules": "^3.3.0",
     "esbuild": "^0.20.0",
     "esbuild-svelte": "^0.8.0",
     "obsidian": "latest",

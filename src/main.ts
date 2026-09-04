@@ -7,9 +7,9 @@ import "./styles.css";
 
 export class PomofocusViewWrapper extends ItemView {
   private component: PomofocusView | null = null;
-  private plugin: A1PomofocusPlugin;
+  private plugin: FluentPomofocusPlugin;
 
-  constructor(leaf: WorkspaceLeaf, plugin: A1PomofocusPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: FluentPomofocusPlugin) {
     super(leaf);
     this.plugin = plugin;
   }
@@ -51,7 +51,7 @@ export class PomofocusViewWrapper extends ItemView {
   }
 }
 
-export default class A1PomofocusPlugin extends Plugin {
+export default class FluentPomofocusPlugin extends Plugin {
   settings: PomofocusSettings = DEFAULT_SETTINGS;
   soundService!: SoundService;
   timerService!: TimerService;
@@ -102,7 +102,7 @@ export default class A1PomofocusPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "open-pomofocus-sidebar",
+      id: "open-sidebar",
       name: "Open Pomofocus in Sidebar",
       callback: () => {
         void this.activateView();
@@ -110,7 +110,7 @@ export default class A1PomofocusPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "open-pomofocus-popout",
+      id: "open-small-window",
       name: "Open Pomofocus in Small Window",
       callback: () => {
         void this.openPopoutWindow();
@@ -118,7 +118,7 @@ export default class A1PomofocusPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "toggle-pomofocus-timer",
+      id: "toggle-timer",
       name: "Start / Pause Pomofocus Timer",
       callback: () => {
         this.timerService.toggle();

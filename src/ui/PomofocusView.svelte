@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { App } from "obsidian";
-  import type A1PomofocusPlugin from "../main";
+  import type FluentPomofocusPlugin from "../main";
   import { PomofocusSettings, TaskItem, TimerMode } from "../models/types";
   import { TimerService, TimerState } from "../services/TimerService";
   import { SoundService } from "../services/SoundService";
@@ -17,7 +17,7 @@
 
   export let app: App | undefined = undefined;
   if (app) { /* referenced */ }
-  export let plugin: A1PomofocusPlugin;
+  export let plugin: FluentPomofocusPlugin;
   export let settings: PomofocusSettings;
   export let timerService: TimerService;
   export let soundService: SoundService;

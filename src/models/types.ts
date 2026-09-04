@@ -1,4 +1,4 @@
-export const VIEW_TYPE_POMOFOCUS = "a1-pomofocus-view";
+export const VIEW_TYPE_POMOFOCUS = "fluent-pomofocus-view";
 
 export type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 

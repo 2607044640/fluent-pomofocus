@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import type A1PomofocusPlugin from "../main";
+  import type FluentPomofocusPlugin from "../main";
   import { PomofocusSettings, SoundType } from "../models/types";
   import { SoundService } from "../services/SoundService";
   import { X, Volume2, ExternalLink } from "lucide-svelte";
 
-  export let plugin: A1PomofocusPlugin;
+  export let plugin: FluentPomofocusPlugin;
   export let settings: PomofocusSettings;
   export let soundService: SoundService;
   export let onOpenSmallWindow: () => void;
