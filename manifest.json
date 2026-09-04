@@ -1,0 +1,9 @@
+{
+  "id": "a1-pomofocus",
+  "name": "A1 Pomofocus",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "A Pomofocus recreation for Obsidian with system sound notifications, drift-free timer, and popout mini-window.",
+  "author": "Jeff1024",
+  "isDesktopOnly": false
+}
