@@ -107,4 +107,9 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 2. **200% Gain Amplification & Dynamics Limiting**: Routes sound through `AudioContext` with `GainNode` scaling up to 2.0x and `DynamicsCompressorNode` (-12dB threshold, 10:1 ratio, 3ms attack) to ensure alerts are loud and crisp across low-power laptop speakers without clipping or distortion.
 3. **Multi-Harmonic Synthesized Fallback**: If offline or before initial download finishes, instant synthesized multi-harmonic oscillators ensure notifications are never missed.
 4. **Interactive Volume Control & Sequential Repeat Engine**: Setting modal provides 0-100% slider and repeat counter (1-10) with live preview on slider release, dropdown change, and number input. Playback employs an interruptible `onended` sequential repeat loop with a 100ms natural acoustic cadence, while `stopSound()` guarantees instant cutoff without overlapping when re-triggered or closed.
+
+### Invariant 5: Native Obsidian Theme Harmony & Fluid Typography
+1. **Default Native Theming**: Default `colorTheme` is `"obsidian"`, inheriting `var(--background-secondary)` for leaf backdrop, `var(--background-primary)` for card surfaces, `var(--interactive-accent)` for interactive controls and active tabs, and `var(--text-normal)` / `var(--text-muted)` for typography.
+2. **Minimal Header**: Top bar omits redundant plugin brand titles to eliminate sidebar vertical clutter, reserving space purely for utility actions (`Small Window`, `Setting`).
+3. **Sidebar-Adapted Scale**: Countdown display is proportioned to 56px, tabs to 12px, buttons to 38px, and card padding to 14-16px to prevent horizontal overflow and rigid visual dominance in narrow (250px-350px) sidebar leaves.
 <!-- END USER-SPECIFIED -->

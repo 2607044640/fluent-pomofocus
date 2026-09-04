@@ -53,6 +53,11 @@ For underlying architecture specifications, state management, API signatures, an
 - **Inline Task Creation**: Create tasks with estimated pomodoros.
 - **Auto-Check & Sinking**: Optionally auto-marks tasks as done when estimated pomodoros are reached, and moves finished tasks to the bottom of the list.
 
+### 🎨 Native Obsidian Theme Harmony & Fluid Typography
+- **Seamless Theme Following**: By default, Pomofocus automatically adopts your active Obsidian theme palette (`--background-secondary`, `--background-primary`, `--interactive-accent`, `--text-normal`).
+- **Sidebar-Optimized Layout**: The top utility bar eliminates redundant plugin titles, while countdown text (56px) and controls (38px) are proportioned to fit sidebars effortlessly without horizontal overflow or boxy clunkiness.
+- **Custom Color Swatches**: Users can switch between the native Obsidian theme and classic Pomofocus saturated styles (Teal, Green, Blue) anytime via the Setting modal.
+
 ### ⚙️ Integrated In-View Settings with Instant Autosave
 - **Dedicated Preferences Center**: All timer durations, automation toggles, alert tones, volume levels, repeats, and color themes are managed directly through the top-nav **Setting** modal in both sidebar and Small Window views.
 - **Zero-Friction Live Autosave**: Modifications take effect in real time as values are typed or toggles are clicked, immediately updating the active timer and writing to vault storage without requiring Obsidian restarts.

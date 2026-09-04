@@ -36,7 +36,7 @@ export interface PomofocusSettings {
   focusSound: string;
 
   // Themes & UI
-  colorTheme: "teal" | "green" | "blue";
+  colorTheme: "obsidian" | "teal" | "green" | "blue";
   hourFormat: "24" | "12";
   darkModeWhenRunning: boolean;
 
@@ -64,7 +64,7 @@ export const DEFAULT_SETTINGS: PomofocusSettings = {
   alarmRepeat: 2,
   focusSound: "none",
 
-  colorTheme: "teal",
+  colorTheme: "obsidian",
   hourFormat: "24",
   darkModeWhenRunning: false,
 

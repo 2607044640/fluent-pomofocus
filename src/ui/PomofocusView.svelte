@@ -9,7 +9,6 @@
   import {
     Settings as SettingsIcon,
     ExternalLink,
-    CheckCircle2,
     Plus,
     MoreVertical,
     Trash2,
@@ -77,6 +76,9 @@
   }
 
   function getThemeBgColor(mode: TimerMode, theme: string, running: boolean, darkMode: boolean): string {
+    if (theme === "obsidian") {
+      return "";
+    }
     if (running && darkMode) {
       return "#151719";
     }
@@ -191,22 +193,19 @@
 <div
   bind:this={wrapperEl}
   class="pomo-app-wrapper"
+  class:theme-obsidian={settings.colorTheme === "obsidian"}
   class:modal-open={showSettingModal}
-  style="background-color: {getThemeBgColor(timerState.mode, settings.colorTheme, timerState.isRunning, settings.darkModeWhenRunning)}"
+  style={settings.colorTheme === "obsidian" ? "" : `background-color: ${getThemeBgColor(timerState.mode, settings.colorTheme, timerState.isRunning, settings.darkModeWhenRunning)}`}
 >
   <!-- TOP NAV BAR -->
   <header class="pomo-header">
-    <div class="pomo-brand">
-      <CheckCircle2 size={20} class="pomo-brand-icon" />
-      <span class="pomo-brand-name">Pomofocus</span>
-    </div>
     <div class="pomo-nav-actions">
-      <button class="pomo-btn-nav" on:click={onOpenSmallWindow} title="Open Small Window">
-        <ExternalLink size={15} />
+      <button class="pomo-btn-nav" on:click={onOpenSmallWindow} title="Open in Small Window">
+        <ExternalLink size={13} />
         <span class="pomo-btn-text">Small Window</span>
       </button>
       <button class="pomo-btn-nav" on:click={openSettingsModal} title="Settings">
-        <SettingsIcon size={15} />
+        <SettingsIcon size={13} />
         <span class="pomo-btn-text">Setting</span>
       </button>
     </div>
@@ -257,15 +256,14 @@
 
         {#if timerState.isRunning || timerState.remainingSeconds < timerState.totalSeconds}
           <button class="pomo-skip-btn" on:click={skipTimer} title="Skip to next">
-            <SkipForward size={22} />
+            <SkipForward size={18} />
           </button>
         {/if}
       </div>
     </div>
 
-    <!-- SUBTITLE & ROUND -->
+    <!-- STATUS MESSAGE -->
     <div class="pomo-sub-info">
-      <div class="pomo-round">#{timerState.round}</div>
       <div class="pomo-status-msg">
         {timerState.mode === "pomodoro" ? "Time to focus!" : "Time for a break!"}
       </div>
@@ -375,11 +373,16 @@
     display: flex;
     flex-direction: column;
     color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    transition: background-color 0.4s ease;
+    font-family: var(--font-interface, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    transition: background-color 0.3s ease;
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
+  }
+
+  .pomo-app-wrapper.theme-obsidian {
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
   }
 
   .pomo-app-wrapper.modal-open {
@@ -389,107 +392,142 @@
   .pomo-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 20px;
-    max-width: 520px;
+    justify-content: flex-end;
+    padding: 8px 16px;
+    max-width: 440px;
     margin: 0 auto;
     width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
   }
-
-  .pomo-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+  .theme-obsidian .pomo-header {
+    border-bottom: 1px solid var(--background-modifier-border);
   }
 
   .pomo-nav-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
 
   .pomo-btn-nav {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.14);
     border: none;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.9);
     border-radius: 4px;
-    padding: 5px 10px;
-    font-size: 12px;
+    padding: 4px 8px;
+    font-size: 11px;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.15s ease;
   }
   .pomo-btn-nav:hover {
-    background: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.24);
+    color: #fff;
+  }
+  .theme-obsidian .pomo-btn-nav {
+    background: var(--background-modifier-hover);
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+  }
+  .theme-obsidian .pomo-btn-nav:hover {
+    background: var(--background-modifier-active-hover);
+    color: var(--text-normal);
   }
 
   .pomo-main-content {
-    max-width: 480px;
+    max-width: 420px;
     width: 100%;
     margin: 0 auto;
-    padding: 24px 16px 40px 16px;
+    padding: 14px 14px 28px 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-sizing: border-box;
   }
 
   .pomo-timer-card {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 20px 24px 28px 24px;
+    border-radius: 10px;
+    padding: 14px 16px 18px 16px;
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+  }
+  .theme-obsidian .pomo-timer-card {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: var(--shadow-s, 0 2px 8px rgba(0, 0, 0, 0.08));
   }
 
   .pomo-tabs {
     display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 4px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 3px;
+    border-radius: 6px;
+  }
+  .theme-obsidian .pomo-tabs {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
   }
 
   .pomo-tab {
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
     font-weight: 500;
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 4px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
+    user-select: none;
   }
   .pomo-tab:hover {
-    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
   }
   .pomo-tab.active {
-    background: rgba(0, 0, 0, 0.18);
-    font-weight: 700;
-    color: #fff;
+    background: rgba(0, 0, 0, 0.22);
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .theme-obsidian .pomo-tab {
+    color: var(--text-muted);
+  }
+  .theme-obsidian .pomo-tab:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+  }
+  .theme-obsidian .pomo-tab.active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent, #ffffff);
   }
 
   .pomo-time-display {
-    font-size: 88px;
+    font-size: 56px;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     line-height: 1;
-    margin: 8px 0 24px 0;
+    margin: 6px 0 16px 0;
     user-select: none;
     font-variant-numeric: tabular-nums;
+  }
+  .theme-obsidian .pomo-time-display {
+    color: var(--text-normal);
   }
 
   .pomo-action-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     position: relative;
     width: 100%;
     justify-content: center;
@@ -500,54 +538,70 @@
     color: #225358;
     border: none;
     border-radius: 6px;
-    padding: 0 46px;
-    height: 52px;
-    font-size: 20px;
+    padding: 0 32px;
+    height: 38px;
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    box-shadow: 0 6px 0 #d9d9d9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     transition: all 0.1s ease;
   }
   .pomo-start-btn:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 #d9d9d9;
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
-  .pomo-start-btn.running {
-    box-shadow: 0 2px 0 #d9d9d9;
-    transform: translateY(4px);
+  .theme-obsidian .pomo-start-btn {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent, #ffffff);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  .theme-obsidian .pomo-start-btn:hover {
+    filter: brightness(1.08);
+  }
+  .theme-obsidian .pomo-start-btn.running {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: none;
   }
 
   .pomo-skip-btn {
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.75);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
-    border-radius: 6px;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
   }
   .pomo-skip-btn:hover {
     color: #fff;
     background: rgba(255, 255, 255, 0.15);
   }
+  .theme-obsidian .pomo-skip-btn {
+    color: var(--text-muted);
+  }
+  .theme-obsidian .pomo-skip-btn:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+  }
 
   .pomo-sub-info {
     text-align: center;
-    margin: 20px 0 24px 0;
-  }
-
-  .pomo-round {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.65);
-    margin-bottom: 4px;
+    margin: 10px 0 14px 0;
   }
 
   .pomo-status-msg {
-    font-size: 17px;
+    font-size: 13px;
     font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .theme-obsidian .pomo-status-msg {
+    color: var(--text-muted);
   }
 
   .pomo-tasks-section {
@@ -558,14 +612,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-    padding-bottom: 12px;
-    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .theme-obsidian .pomo-tasks-header {
+    border-bottom: 1px solid var(--background-modifier-border);
   }
 
   .pomo-tasks-title {
-    font-size: 17px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .theme-obsidian .pomo-tasks-title {
+    color: var(--text-normal);
   }
 
   .pomo-tasks-menu-wrapper {
@@ -573,30 +633,46 @@
   }
 
   .pomo-icon-btn-round {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     border: none;
     color: #fff;
     border-radius: 4px;
-    padding: 4px 6px;
+    padding: 3px 5px;
     cursor: pointer;
     display: flex;
     align-items: center;
+    transition: background 0.15s;
   }
   .pomo-icon-btn-round:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.25);
+  }
+  .theme-obsidian .pomo-icon-btn-round {
+    background: var(--background-modifier-hover);
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+  }
+  .theme-obsidian .pomo-icon-btn-round:hover {
+    background: var(--background-modifier-active-hover);
+    color: var(--text-normal);
   }
 
   .pomo-dropdown-menu {
     position: absolute;
     right: 0;
-    top: 30px;
+    top: 28px;
     background: #ffffff;
     color: #333333;
     border-radius: 6px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     z-index: 50;
-    min-width: 160px;
+    min-width: 150px;
     overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .theme-obsidian .pomo-dropdown-menu {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: var(--shadow-s, 0 4px 12px rgba(0, 0, 0, 0.3));
   }
 
   .pomo-dropdown-menu button {
@@ -605,49 +681,68 @@
     display: block;
     width: 100%;
     text-align: left;
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12px;
     color: #444;
     cursor: pointer;
   }
   .pomo-dropdown-menu button:hover {
     background: #f0f0f0;
   }
+  .theme-obsidian .pomo-dropdown-menu button {
+    color: var(--text-normal);
+  }
+  .theme-obsidian .pomo-dropdown-menu button:hover {
+    background: var(--background-modifier-hover);
+  }
 
   .pomo-tasks-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 14px;
+    gap: 6px;
+    margin-bottom: 10px;
   }
 
   .pomo-task-item {
     background: #ffffff;
     color: #333333;
     border-radius: 6px;
-    padding: 12px 14px;
+    padding: 9px 12px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     transition: transform 0.1s;
-    border-left: 4px solid transparent;
+    border-left: 3px solid transparent;
   }
   .pomo-task-item.active {
     border-left-color: #1d5257;
   }
+  .theme-obsidian .pomo-task-item {
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: none;
+  }
+  .theme-obsidian .pomo-task-item.active {
+    border-left: 3px solid var(--interactive-accent);
+    background: var(--background-primary-alt, var(--background-primary));
+  }
   .pomo-task-item.completed {
-    opacity: 0.65;
+    opacity: 0.6;
   }
   .pomo-task-item.completed .pomo-task-title {
     text-decoration: line-through;
     color: #888;
   }
+  .theme-obsidian .pomo-task-item.completed .pomo-task-title {
+    color: var(--text-muted);
+  }
 
   .pomo-task-check {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: 2px solid #bbb;
     background: transparent;
@@ -655,31 +750,42 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     color: #fff;
     padding: 0;
+    flex-shrink: 0;
+  }
+  .theme-obsidian .pomo-task-check {
+    border-color: var(--background-modifier-border, #666);
   }
   .pomo-task-check.checked {
     background: #ba4949;
     border-color: #ba4949;
   }
+  .theme-obsidian .pomo-task-check.checked {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+  }
 
   .pomo-task-title {
     flex: 1;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
   }
 
   .pomo-task-meta {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   .pomo-pomo-count {
-    font-size: 13px;
+    font-size: 12px;
     color: #888;
     font-weight: 600;
+  }
+  .theme-obsidian .pomo-pomo-count {
+    color: var(--text-muted);
   }
 
   .pomo-del-task-btn {
@@ -687,85 +793,119 @@
     border: none;
     color: #aaa;
     cursor: pointer;
-    padding: 3px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
   }
   .pomo-del-task-btn:hover {
     color: #e53935;
   }
 
   .pomo-add-task-dashed {
-    background: rgba(0, 0, 0, 0.12);
-    border: 2px dashed rgba(255, 255, 255, 0.4);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.08);
+    border: 1px dashed rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
     color: rgba(255, 255, 255, 0.85);
     width: 100%;
-    height: 48px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    font-size: 15px;
+    gap: 6px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.15s;
   }
   .pomo-add-task-dashed:hover {
-    background: rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  .theme-obsidian .pomo-add-task-dashed {
+    background: transparent;
+    border: 1px dashed var(--background-modifier-border);
+    color: var(--text-muted);
+  }
+  .theme-obsidian .pomo-add-task-dashed:hover {
+    border-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
   }
 
   .pomo-add-task-card {
     background: #ffffff;
     color: #333333;
-    border-radius: 8px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 12px 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  }
+  .theme-obsidian .pomo-add-task-card {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    box-shadow: var(--shadow-s, 0 2px 8px rgba(0,0,0,0.1));
   }
 
   .pomo-add-title-input {
     width: 100%;
     border: none;
     outline: none;
-    font-size: 16px;
-    font-style: italic;
+    font-size: 14px;
+    font-style: normal;
     color: #444;
-    padding: 4px 0 12px 0;
+    padding: 2px 0 8px 0;
+  }
+  .theme-obsidian .pomo-add-title-input {
+    background: transparent;
+    color: var(--text-normal);
   }
 
   .pomo-est-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
+    gap: 8px;
+    font-size: 12px;
     color: #666;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+  }
+  .theme-obsidian .pomo-est-row {
+    color: var(--text-muted);
   }
 
   .pomo-est-input {
-    width: 50px;
-    padding: 4px 6px;
+    width: 44px;
+    padding: 3px 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
     text-align: center;
+    font-size: 12px;
+  }
+  .theme-obsidian .pomo-est-input {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
   }
 
   .pomo-add-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 8px;
   }
 
   .pomo-btn-cancel {
     background: transparent;
     border: none;
     color: #777;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    padding: 6px 12px;
+    padding: 5px 10px;
   }
-  .pomo-btn-cancel:hover {
-    color: #333;
+  .theme-obsidian .pomo-btn-cancel {
+    color: var(--text-muted);
+  }
+  .theme-obsidian .pomo-btn-cancel:hover {
+    color: var(--text-normal);
   }
 
   .pomo-btn-save {
@@ -773,12 +913,13 @@
     color: #fff;
     border: none;
     border-radius: 4px;
-    padding: 7px 18px;
-    font-size: 13px;
+    padding: 5px 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
   }
-  .pomo-btn-save:hover {
-    background: #444;
+  .theme-obsidian .pomo-btn-save {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent, #ffffff);
   }
 </style>
