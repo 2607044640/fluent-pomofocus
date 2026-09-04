@@ -1,7 +1,7 @@
 node_modules/
-main.js
-main.css
-styles.css
+/main.js
+/main.css
+/styles.css
 .DS_Store
 Thumbs.db
 desktop.ini

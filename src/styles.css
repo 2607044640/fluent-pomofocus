@@ -1,0 +1,5 @@
+/* Fluent Pomofocus Styles */
+.workspace-leaf-content[data-type="fluent-pomofocus-view"] .view-content {
+  padding: 0 !important;
+  overflow: hidden;
+}
