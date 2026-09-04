@@ -67,21 +67,28 @@
   });
 
   function handleSave() {
+    soundService.stopSound();
     syncChanges(true);
     dispatch("save", sanitize(localSettings));
     dispatch("close");
   }
 
   function handleClose() {
+    soundService.stopSound();
     syncChanges(true);
     dispatch("close");
   }
 
-  function testSound() {
-    soundService.playSound(
+  function testSound(forcePlay: boolean = false) {
+    if (!forcePlay && soundService.isPlaying()) {
+      soundService.stopSound();
+      return;
+    }
+    const rep = Math.max(1, Math.min(Number(localSettings.alarmRepeat) || 1, 10));
+    void soundService.playSound(
       localSettings.alarmSound,
       localSettings.alarmVolume,
-      1
+      rep
     );
   }
 </script>
@@ -210,7 +217,7 @@
               bind:value={localSettings.alarmSound}
               on:change={() => {
                 syncChanges(true);
-                testSound();
+                testSound(true);
               }}
             >
               <option value="wood">Wood (木块/木鱼)</option>
@@ -220,7 +227,7 @@
               <option value="kitchen">Kitchen (机械闹钟)</option>
               <option value="none">None (静音)</option>
             </select>
-            <button class="pomo-test-sound-btn" on:click={testSound} title="Test Sound">
+            <button class="pomo-test-sound-btn" on:click={() => testSound(false)} title="Test Sound">
               <Volume2 size={16} />
             </button>
           </div>
@@ -236,7 +243,7 @@
             on:input={() => syncChanges(false)}
             on:change={() => {
               syncChanges(true);
-              testSound();
+              testSound(true);
             }}
           />
         </div>
@@ -246,11 +253,14 @@
           <input
             type="number"
             min="1"
-            max="5"
+            max="10"
             class="pomo-num-input"
             bind:value={localSettings.alarmRepeat}
             on:input={() => syncChanges(false)}
-            on:change={() => syncChanges(true)}
+            on:change={() => {
+              syncChanges(true);
+              testSound(true);
+            }}
           />
         </div>
       </div>
