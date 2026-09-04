@@ -177,10 +177,21 @@
   async function handleSaveModal(e: CustomEvent<PomofocusSettings>) {
     await plugin.updateAndBroadcastSettings(e.detail, "modal");
   }
+
+  let wrapperEl: HTMLElement | null = null;
+
+  function openSettingsModal() {
+    if (wrapperEl) {
+      wrapperEl.scrollTop = 0;
+    }
+    showSettingModal = true;
+  }
 </script>
 
 <div
+  bind:this={wrapperEl}
   class="pomo-app-wrapper"
+  class:modal-open={showSettingModal}
   style="background-color: {getThemeBgColor(timerState.mode, settings.colorTheme, timerState.isRunning, settings.darkModeWhenRunning)}"
 >
   <!-- TOP NAV BAR -->
@@ -194,7 +205,7 @@
         <ExternalLink size={15} />
         <span class="pomo-btn-text">Small Window</span>
       </button>
-      <button class="pomo-btn-nav" on:click={() => (showSettingModal = true)} title="Settings">
+      <button class="pomo-btn-nav" on:click={openSettingsModal} title="Settings">
         <SettingsIcon size={15} />
         <span class="pomo-btn-text">Setting</span>
       </button>
@@ -368,6 +379,10 @@
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
+  }
+
+  .pomo-app-wrapper.modal-open {
+    overflow: hidden;
   }
 
   .pomo-header {

@@ -13,12 +13,8 @@
     save: PomofocusSettings;
   }>();
 
-  // Local copy to edit
+  // Local copy to edit - initialized once on mount
   let localSettings: PomofocusSettings = JSON.parse(JSON.stringify(settings));
-
-  $: if (settings) {
-    localSettings = JSON.parse(JSON.stringify(settings));
-  }
 
   function handleSave() {
     dispatch("save", localSettings);
@@ -38,8 +34,8 @@
   }
 </script>
 
-<div class="pomo-modal-backdrop" on:click|self={handleClose} on:keydown|self={(e) => e.key === 'Escape' && handleClose()} role="presentation">
-  <div class="pomo-modal-content">
+<div class="pomo-modal-backdrop" on:click|self={handleClose} on:keydown|self={(e) => e.key === 'Escape' && handleClose()} role="button" tabindex="-1" aria-label="Close modal">
+  <div class="pomo-modal-content" role="dialog" aria-modal="true">
     <div class="pomo-modal-header">
       <span class="pomo-modal-title">SETTING</span>
       <button class="pomo-icon-btn" on:click={handleClose} title="Close">
@@ -187,17 +183,21 @@
     bottom: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.72);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(3px);
     padding: 12px;
     box-sizing: border-box;
   }
 
   .pomo-modal-content {
+    position: relative;
+    z-index: 1001;
+    pointer-events: auto;
+    user-select: text;
+    -webkit-user-select: text;
     background: #1e2022;
     color: #e6e6e6;
     border-radius: 12px;
@@ -250,6 +250,7 @@
     justify-content: center;
     padding: 4px;
     border-radius: 4px;
+    pointer-events: auto;
   }
   .pomo-icon-btn:hover {
     color: #fff;
@@ -305,6 +306,10 @@
     text-align: center;
     font-size: 14px;
     font-weight: 600;
+    user-select: text;
+    -webkit-user-select: text;
+    pointer-events: auto;
+    cursor: text;
   }
 
   .pomo-switch-row,
@@ -328,6 +333,10 @@
     width: 60px;
     text-align: center;
     font-size: 13px;
+    user-select: text;
+    -webkit-user-select: text;
+    pointer-events: auto;
+    cursor: text;
   }
 
   .pomo-divider {
@@ -360,6 +369,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    pointer-events: auto;
   }
   .pomo-test-sound-btn:hover {
     color: #fff;
@@ -382,6 +392,7 @@
   .pomo-slider-row input[type="range"] {
     flex: 1;
     accent-color: #4a9388;
+    pointer-events: auto;
   }
 
   .pomo-swatches {
@@ -395,6 +406,7 @@
     border-radius: 4px;
     border: 2px solid transparent;
     cursor: pointer;
+    pointer-events: auto;
   }
   .pomo-swatch.teal { background: #265559; }
   .pomo-swatch.green { background: #356859; }
@@ -415,6 +427,7 @@
     align-items: center;
     gap: 4px;
     cursor: pointer;
+    pointer-events: auto;
   }
   .pomo-open-window-btn:hover {
     color: #fff;
@@ -438,6 +451,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
+    pointer-events: auto;
   }
   .pomo-ok-btn:hover {
     background: #555b60;
@@ -445,6 +459,7 @@
 
   .pomo-toggle {
     appearance: none;
+    -webkit-appearance: none;
     width: 36px;
     height: 20px;
     background: #3c4043;
@@ -453,6 +468,7 @@
     cursor: pointer;
     outline: none;
     transition: background 0.2s;
+    pointer-events: auto;
   }
   .pomo-toggle::after {
     content: "";
