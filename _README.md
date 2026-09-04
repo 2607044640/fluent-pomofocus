@@ -28,7 +28,8 @@ For underlying architecture specifications, state management, API signatures, an
 | **Skip Mode** | Button: `>>` (Next to start button) | Manually advances to next break or pomodoro |
 | **Switch Modes** | Tabs: `Pomodoro`, `Short Break`, `Long Break` | Switches period and adapts theme color |
 | **Add Task** | Button: `+ Add Task` | Inserts inline task with estimated pomodoro count |
-| **Configure** | Obsidian Settings -> `A1 Pomofocus` | Native settings panel for durations, sounds, themes, and automation |
+| **Configure (In-View)** | Top Nav: `Setting` button | Opens centered modal preferences directly inside view |
+| **Configure (Global)** | Obsidian Settings -> `A1 Pomofocus` | Native Obsidian setting tab |
 </layer_1_quick_start>
 
 ---
@@ -50,4 +51,19 @@ For underlying architecture specifications, state management, API signatures, an
 ### 📋 Integrated Task Management
 - **Inline Task Creation**: Create tasks with estimated pomodoros.
 - **Auto-Check & Sinking**: Optionally auto-marks tasks as done when estimated pomodoros are reached, and moves finished tasks to the bottom of the list.
+
+### 🔄 Dual-Settings Real-Time Alignment
+- **Two Ways to Configure**: Settings can be modified either via the top-nav **Setting modal** inside the view (in sidebar or Small Window) or via the **Obsidian Settings Tab** (`Settings -> A1 Pomofocus`).
+- **Seamless Live Sync**: Both setting panels are connected to the central plugin state engine (`updateAndBroadcastSettings`). Any modification in one panel updates the other in real time without lag, desync, or input focus disruption.
 </layer_2_detailed_guide>
+
+---
+
+<layer_3_advanced>
+## ⚙️ Layer 3: Advanced Usage & Integration
+
+### 🪟 Small Window Physics
+- Triggering `Small Window` uses Obsidian's native `openPopoutLeaf` API.
+- The window operates as an independent OS-level desktop window (size `480x720`).
+- The in-view Setting modal is scoped with absolute container geometry, ensuring it centers correctly within both narrow sidebars (width ~300px) and detached popout windows without being pushed off-screen.
+</layer_3_advanced>
