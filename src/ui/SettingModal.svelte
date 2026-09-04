@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
+  import type A1PomofocusPlugin from "../main";
   import { PomofocusSettings, SoundType } from "../models/types";
   import { SoundService } from "../services/SoundService";
   import { X, Volume2, ExternalLink } from "lucide-svelte";
 
+  export let plugin: A1PomofocusPlugin;
   export let settings: PomofocusSettings;
   export let soundService: SoundService;
   export let onOpenSmallWindow: () => void;
@@ -16,12 +18,62 @@
   // Local copy to edit - initialized once on mount
   let localSettings: PomofocusSettings = JSON.parse(JSON.stringify(settings));
 
+  let debounceTimer: number | null = null;
+
+  function sanitize(s: PomofocusSettings): PomofocusSettings {
+    return {
+      ...s,
+      pomoTime: Math.max(1, Number(s.pomoTime) || 1),
+      shortBreakTime: Math.max(1, Number(s.shortBreakTime) || 1),
+      longBreakTime: Math.max(1, Number(s.longBreakTime) || 1),
+      longBreakInterval: Math.max(1, Number(s.longBreakInterval) || 1),
+      alarmVolume: Math.min(100, Math.max(0, Number(s.alarmVolume) ?? 80)),
+      alarmRepeat: Math.max(1, Number(s.alarmRepeat) || 1),
+    };
+  }
+
+  function syncChanges(immediate: boolean = false) {
+    if (debounceTimer !== null) {
+      window.clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+
+    const cleaned = sanitize(localSettings);
+    if (immediate) {
+      void plugin.updateAndBroadcastSettings(cleaned, "modal");
+    } else {
+      debounceTimer = window.setTimeout(() => {
+        void plugin.updateAndBroadcastSettings(cleaned, "modal");
+        debounceTimer = null;
+      }, 200);
+    }
+  }
+
+  onMount(() => {
+    // If settings change in Obsidian Settings tab while modal is open, reflect them live
+    const unsubscribe = plugin.onSettingsChange((newSettings, source) => {
+      if (source !== "modal") {
+        localSettings = { ...newSettings };
+      }
+    });
+
+    return () => {
+      if (debounceTimer !== null) {
+        window.clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+      unsubscribe();
+    };
+  });
+
   function handleSave() {
-    dispatch("save", localSettings);
+    syncChanges(true);
+    dispatch("save", sanitize(localSettings));
     dispatch("close");
   }
 
   function handleClose() {
+    syncChanges(true);
     dispatch("close");
   }
 
@@ -34,7 +86,7 @@
   }
 </script>
 
-<div class="pomo-modal-backdrop" on:click|self={handleClose} on:keydown|self={(e) => e.key === 'Escape' && handleClose()} role="button" tabindex="-1" aria-label="Close modal">
+<div class="pomo-modal-backdrop" on:click|self={handleClose} on:keydown|self={(e) => e.key === 'Escape' && handleClose()} role="presentation">
   <div class="pomo-modal-content" role="dialog" aria-modal="true">
     <div class="pomo-modal-header">
       <span class="pomo-modal-title">SETTING</span>
@@ -51,31 +103,73 @@
         <div class="pomo-time-inputs">
           <div class="pomo-time-col">
             <label for="pomo-time-input">Pomodoro</label>
-            <input id="pomo-time-input" type="number" min="1" max="180" bind:value={localSettings.pomoTime} />
+            <input
+              id="pomo-time-input"
+              type="number"
+              min="1"
+              max="180"
+              bind:value={localSettings.pomoTime}
+              on:input={() => syncChanges(false)}
+              on:change={() => syncChanges(true)}
+            />
           </div>
           <div class="pomo-time-col">
             <label for="short-break-input">Short Break</label>
-            <input id="short-break-input" type="number" min="1" max="60" bind:value={localSettings.shortBreakTime} />
+            <input
+              id="short-break-input"
+              type="number"
+              min="1"
+              max="60"
+              bind:value={localSettings.shortBreakTime}
+              on:input={() => syncChanges(false)}
+              on:change={() => syncChanges(true)}
+            />
           </div>
           <div class="pomo-time-col">
             <label for="long-break-input">Long Break</label>
-            <input id="long-break-input" type="number" min="1" max="60" bind:value={localSettings.longBreakTime} />
+            <input
+              id="long-break-input"
+              type="number"
+              min="1"
+              max="60"
+              bind:value={localSettings.longBreakTime}
+              on:input={() => syncChanges(false)}
+              on:change={() => syncChanges(true)}
+            />
           </div>
         </div>
 
         <div class="pomo-switch-row">
           <span>Auto Start Breaks</span>
-          <input type="checkbox" class="pomo-toggle" bind:checked={localSettings.autoStartBreaks} />
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            bind:checked={localSettings.autoStartBreaks}
+            on:change={() => syncChanges(true)}
+          />
         </div>
 
         <div class="pomo-switch-row">
           <span>Auto Start Pomodoros</span>
-          <input type="checkbox" class="pomo-toggle" bind:checked={localSettings.autoStartPomodoros} />
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            bind:checked={localSettings.autoStartPomodoros}
+            on:change={() => syncChanges(true)}
+          />
         </div>
 
         <div class="pomo-input-row">
           <span>Long Break interval</span>
-          <input type="number" min="1" max="12" class="pomo-num-input" bind:value={localSettings.longBreakInterval} />
+          <input
+            type="number"
+            min="1"
+            max="12"
+            class="pomo-num-input"
+            bind:value={localSettings.longBreakInterval}
+            on:input={() => syncChanges(false)}
+            on:change={() => syncChanges(true)}
+          />
         </div>
       </div>
 
@@ -86,11 +180,21 @@
         <div class="pomo-section-title">☑ TASK</div>
         <div class="pomo-switch-row">
           <span>Auto Check Tasks</span>
-          <input type="checkbox" class="pomo-toggle" bind:checked={localSettings.autoCheckTasks} />
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            bind:checked={localSettings.autoCheckTasks}
+            on:change={() => syncChanges(true)}
+          />
         </div>
         <div class="pomo-switch-row">
           <span>Check to Bottom</span>
-          <input type="checkbox" class="pomo-toggle" bind:checked={localSettings.checkToBottom} />
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            bind:checked={localSettings.checkToBottom}
+            on:change={() => syncChanges(true)}
+          />
         </div>
       </div>
 
@@ -102,7 +206,7 @@
         <div class="pomo-select-row">
           <span>Alarm Sound</span>
           <div class="pomo-sound-controls">
-            <select bind:value={localSettings.alarmSound}>
+            <select bind:value={localSettings.alarmSound} on:change={() => syncChanges(true)}>
               <option value="wood">Wood</option>
               <option value="bell">Bell</option>
               <option value="digital">Digital</option>
@@ -116,12 +220,27 @@
 
         <div class="pomo-slider-row">
           <span class="pomo-slider-val">{localSettings.alarmVolume}</span>
-          <input type="range" min="0" max="100" bind:value={localSettings.alarmVolume} />
+          <input
+            type="range"
+            min="0"
+            max="100"
+            bind:value={localSettings.alarmVolume}
+            on:input={() => syncChanges(false)}
+            on:change={() => syncChanges(true)}
+          />
         </div>
 
         <div class="pomo-input-row">
           <span>repeat</span>
-          <input type="number" min="1" max="5" class="pomo-num-input" bind:value={localSettings.alarmRepeat} />
+          <input
+            type="number"
+            min="1"
+            max="5"
+            class="pomo-num-input"
+            bind:value={localSettings.alarmRepeat}
+            on:input={() => syncChanges(false)}
+            on:change={() => syncChanges(true)}
+          />
         </div>
       </div>
 
@@ -136,19 +255,19 @@
             <button
               class="pomo-swatch teal"
               class:selected={localSettings.colorTheme === "teal"}
-              on:click={() => (localSettings.colorTheme = "teal")}
+              on:click={() => { localSettings.colorTheme = "teal"; syncChanges(true); }}
               aria-label="Teal Theme"
             ></button>
             <button
               class="pomo-swatch green"
               class:selected={localSettings.colorTheme === "green"}
-              on:click={() => (localSettings.colorTheme = "green")}
+              on:click={() => { localSettings.colorTheme = "green"; syncChanges(true); }}
               aria-label="Green Theme"
             ></button>
             <button
               class="pomo-swatch blue"
               class:selected={localSettings.colorTheme === "blue"}
-              on:click={() => (localSettings.colorTheme = "blue")}
+              on:click={() => { localSettings.colorTheme = "blue"; syncChanges(true); }}
               aria-label="Blue Theme"
             ></button>
           </div>
@@ -156,7 +275,12 @@
 
         <div class="pomo-switch-row">
           <span>Dark Mode when running</span>
-          <input type="checkbox" class="pomo-toggle" bind:checked={localSettings.darkModeWhenRunning} />
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            bind:checked={localSettings.darkModeWhenRunning}
+            on:change={() => syncChanges(true)}
+          />
         </div>
 
         <div class="pomo-switch-row">

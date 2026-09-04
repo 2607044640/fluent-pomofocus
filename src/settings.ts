@@ -22,6 +22,7 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
     }
 
     const { containerEl } = this;
+    const prevScroll = containerEl.scrollTop;
     containerEl.empty();
 
     new Setting(containerEl).setName("Pomofocus Settings").setHeading();
@@ -232,6 +233,10 @@ export class A1PomofocusSettingTab extends PluginSettingTab {
             await this.plugin.updateAndBroadcastSettings({ darkModeWhenRunning: val }, "settingTab");
           })
       );
+
+    if (prevScroll > 0) {
+      containerEl.scrollTop = prevScroll;
+    }
   }
 
   hide(): void {

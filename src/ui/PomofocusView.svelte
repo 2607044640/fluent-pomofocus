@@ -356,6 +356,7 @@
 
   {#if showSettingModal}
     <SettingModal
+      {plugin}
       {settings}
       {soundService}
       {onOpenSmallWindow}
