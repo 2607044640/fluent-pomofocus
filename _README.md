@@ -28,8 +28,7 @@ For underlying architecture specifications, state management, API signatures, an
 | **Skip Mode** | Button: `>>` (Next to start button) | Manually advances to next break or pomodoro |
 | **Switch Modes** | Tabs: `Pomodoro`, `Short Break`, `Long Break` | Switches period and adapts theme color |
 | **Add Task** | Button: `+ Add Task` | Inserts inline task with estimated pomodoro count |
-| **Configure (In-View)** | Top Nav: `Setting` button | Opens centered modal preferences directly inside view |
-| **Configure (Global)** | Obsidian Settings -> `A1 Pomofocus` | Native Obsidian setting tab |
+| **Configure Settings** | Top Nav: `Setting` button | Opens in-view preferences with instant live autosave |
 </layer_1_quick_start>
 
 ---
@@ -52,9 +51,9 @@ For underlying architecture specifications, state management, API signatures, an
 - **Inline Task Creation**: Create tasks with estimated pomodoros.
 - **Auto-Check & Sinking**: Optionally auto-marks tasks as done when estimated pomodoros are reached, and moves finished tasks to the bottom of the list.
 
-### 🔄 Dual-Settings Real-Time Alignment
-- **Two Ways to Configure**: Settings can be modified either via the top-nav **Setting modal** inside the view (in sidebar or Small Window) or via the **Obsidian Settings Tab** (`Settings -> A1 Pomofocus`).
-- **Seamless Live Sync**: Both setting panels are connected to the central plugin state engine (`updateAndBroadcastSettings`). Any modification in one panel updates the other in real time without lag, desync, or input focus disruption.
+### ⚙️ Integrated In-View Settings with Instant Autosave
+- **Dedicated Preferences Center**: All timer durations, automation toggles, alert tones, volume levels, repeats, and color themes are managed directly through the top-nav **Setting** modal in both sidebar and Small Window views.
+- **Zero-Friction Live Autosave**: Modifications take effect in real time as values are typed or toggles are clicked, immediately updating the active timer and writing to vault storage without requiring Obsidian restarts.
 </layer_2_detailed_guide>
 
 ---

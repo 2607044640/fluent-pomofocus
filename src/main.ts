@@ -2,7 +2,6 @@ import { Plugin, ItemView, WorkspaceLeaf } from "obsidian";
 import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS } from "./models/types";
 import { SoundService } from "./services/SoundService";
 import { TimerService } from "./services/TimerService";
-import { A1PomofocusSettingTab } from "./settings";
 import PomofocusView from "./ui/PomofocusView.svelte";
 import "./styles.css";
 
@@ -96,8 +95,6 @@ export default class A1PomofocusPlugin extends Plugin {
       VIEW_TYPE_POMOFOCUS,
       (leaf) => new PomofocusViewWrapper(leaf, this)
     );
-
-    this.addSettingTab(new A1PomofocusSettingTab(this.app, this));
 
     this.addRibbonIcon("timer", "Pomofocus", () => {
       void this.activateView();

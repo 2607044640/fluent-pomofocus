@@ -11,28 +11,24 @@ graph TD
     Plugin[A1PomofocusPlugin main.ts] --> TimerService[TimerService]
     Plugin --> SoundService[SoundService]
     Plugin --> NotificationService[NotificationService]
-    Plugin --> SettingTab[A1PomofocusSettingTab settings.ts]
     Plugin --> ViewWrapper[PomofocusViewWrapper ItemView]
     ViewWrapper --> View[PomofocusView.svelte]
     View --> Modal[SettingModal.svelte]
     TimerService --> SoundService
     TimerService --> NotificationService
 
-    Modal -.->|updateAndBroadcastSettings source: modal| Plugin
-    SettingTab -.->|updateAndBroadcastSettings source: settingTab| Plugin
-    Plugin -.->|onSettingsChange broadcast| SettingTab
+    Modal -.->|updateAndBroadcastSettings live autosave| Plugin
     Plugin -.->|onSettingsChange broadcast| View
 ```
 
 ### 1.1 Data Movement Flow
-1. **User Action**: The user edits a configuration option in either the **In-View Setting Modal** (`SettingModal.svelte`) or the native **Obsidian SettingTab** (`settings.ts`).
-2. **Central State Mutation & Persistence**: The initiator invokes `plugin.updateAndBroadcastSettings(patch, source)`.
+1. **User Action**: The user edits a configuration option inside the **In-View Setting Modal** (`SettingModal.svelte`) in the sidebar or Small Window.
+2. **Instant Autosave & Central Mutation**: The modal triggers `plugin.updateAndBroadcastSettings(patch, "modal")` (debounced on number inputs, instant on toggles/swatches/selects).
    - `Object.assign(this.settings, patch)` updates the in-memory singleton.
    - `await this.saveSettings()` asynchronously flushes to `data.json`.
 3. **Timer Service Recalibration**: `TimerService.updateSettings(settings)` updates mode durations. If currently paused, it immediately resets `remainingSeconds` to the new mode duration and triggers `this.notify()`.
 4. **Broadcast & UI Alignment**:
-   - `PomofocusView.svelte` receives the event and updates its local reactive `settings` store, immediately updating color themes and display parameters.
-   - `A1PomofocusSettingTab` receives the event. If `source !== "settingTab"`, it calls `this.display()` to re-render all input controls with the matching values. Keystrokes originating within the SettingTab skip re-rendering to preserve typing focus.
+   - `PomofocusView.svelte` receives the event and updates its local reactive `settings` store, immediately updating color themes and display parameters without requiring an Obsidian restart.
 
 ---
 
@@ -47,7 +43,6 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 ├── _Architecture.md           # Architecture specifications & invariants
 └── src/
     ├── main.ts                # Plugin lifecycle, settings broadcaster, ItemView wrapper
-    ├── settings.ts            # Native Obsidian PluginSettingTab
     ├── declarations.d.ts      # CSS and Svelte ambient declarations
     ├── styles.css             # Base leaf styling
     ├── models/
@@ -72,8 +67,7 @@ c:\ObsidianDev\plugins\A1Pomofocus\
 | `SoundService` | Web Audio API node creation, decay envelopes, sound generation | File IO, timer state, UI bindings |
 | `NotificationService` | HTML5 Notification API and Obsidian Notice toasts | Audio playback, timer state |
 | `PomofocusView.svelte` | Timer visualization, interactive task operations, small window trigger | Audio synthesis math, standalone timer interval |
-| `SettingModal.svelte` | In-view configuration editing and audio preview test | Direct file storage operations |
-| `A1PomofocusSettingTab` | Native Obsidian settings panel integration | Duplicate audio synthesis engine |
+| `SettingModal.svelte` | In-view configuration editing, real-time autosave dispatch, audio preview | Direct file storage operations |
 
 ---
 
@@ -101,13 +95,9 @@ This ensures zero drift even when Obsidian is minimized, backgrounded, or restor
 Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs` MUST retain `copyCssPlugin` to guarantee that `main.css` is mirrored to `styles.css` on every build step.
 
 <!-- BEGIN USER-SPECIFIED -->
-### Invariant 3: Dual-Settings Synchronization Contract
-1. **Bidirectional Consistency**: The plugin exposes two parallel configuration surfaces:
-   - The in-view **Setting Modal** (`SettingModal.svelte`), accessible inside the sidebar view and the detached Small Window.
-   - The native **Obsidian SettingTab** (`settings.ts`), accessible via Obsidian `Settings -> Community Plugins -> A1 Pomofocus`.
-2. **Zero-Lag Alignment**: Any setting changed in either surface MUST immediately propagate to:
-   - The alternate setting UI (re-rendering inputs so values match across panes).
-   - The active `TimerService` instance (immediately reflecting new durations on paused timer displays).
-   - The persistent store (`data.json`).
-3. **Typing Focus Protection**: When an update originates from `A1PomofocusSettingTab`, the broadcaster passes `source = "settingTab"`. The setting tab MUST NOT re-render its own DOM on its own inputs to prevent focus loss during active user typing.
+### Invariant 3: In-View Real-Time Settings & Autosave Contract
+1. **Single Unified Surface**: Configuration is managed exclusively through the in-view **Setting Modal** (`SettingModal.svelte`), accessible inside both the sidebar view and detached Small Windows.
+2. **Instant Live Autosave**: Any modified preference (timer durations, automation switches, alarm sound/volume/repeat, color themes, dark mode) takes effect immediately via `syncChanges` without requiring an Obsidian restart or manual OK button confirmation.
+3. **Timer Recalibration**: Active paused states immediately recalibrate the countdown timer display to newly chosen mode durations.
+4. **Clean Hit-Testing**: The modal explicitly avoids Chromium `backdrop-filter` rendering bugs by using clean RGBA backdrop layering and isolated pointer events.
 <!-- END USER-SPECIFIED -->
