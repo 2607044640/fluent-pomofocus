@@ -1,4 +1,4 @@
-import { Plugin, ItemView, WorkspaceLeaf } from "obsidian";
+import { Plugin, ItemView, WorkspaceLeaf, PluginSettingTab, Setting, App } from "obsidian";
 import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS } from "./models/types";
 import { SoundService } from "./services/SoundService";
 import { TimerService } from "./services/TimerService";
@@ -133,6 +133,8 @@ export default class FluentPomofocusPlugin extends Plugin {
         this.timerService.toggle();
       },
     });
+
+    this.addSettingTab(new PomofocusSettingTab(this.app, this));
   }
 
   onunload(): void {
@@ -189,3 +191,33 @@ export default class FluentPomofocusPlugin extends Plugin {
     new PomofocusModal(this.app, this).open();
   }
 }
+
+export class PomofocusSettingTab extends PluginSettingTab {
+  plugin: FluentPomofocusPlugin;
+
+  constructor(app: App, plugin: FluentPomofocusPlugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+
+  display(): void {
+    const { containerEl } = this;
+    containerEl.empty();
+
+    new Setting(containerEl)
+      .setName("Tasks")
+      .setHeading();
+
+    new Setting(containerEl)
+      .setName("Enable tasks")
+      .setDesc("Enable or completely remove the task list and task tracking UI below the timer.")
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.plugin.settings.enableTasks)
+          .onChange(async (value) => {
+            await this.plugin.updateAndBroadcastSettings({ enableTasks: value }, "setting-tab");
+          });
+      });
+  }
+}
+

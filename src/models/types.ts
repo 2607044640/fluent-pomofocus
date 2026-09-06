@@ -26,6 +26,7 @@ export interface PomofocusSettings {
   autoStartPomodoros: boolean;
 
   // Tasks behavior
+  enableTasks: boolean;
   autoCheckTasks: boolean;
   checkToBottom: boolean;
 
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: PomofocusSettings = {
   autoStartBreaks: true,
   autoStartPomodoros: true,
 
+  enableTasks: true,
   autoCheckTasks: false,
   checkToBottom: true,
 

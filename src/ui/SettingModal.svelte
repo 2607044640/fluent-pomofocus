@@ -186,23 +186,34 @@
       <div class="pomo-section">
         <div class="pomo-section-title">☑ TASK</div>
         <div class="pomo-switch-row">
-          <span>Auto Check Tasks</span>
+          <span>Enable Tasks (启用任务清单)</span>
           <input
             type="checkbox"
             class="pomo-toggle"
-            bind:checked={localSettings.autoCheckTasks}
+            bind:checked={localSettings.enableTasks}
             on:change={() => syncChanges(true)}
           />
         </div>
-        <div class="pomo-switch-row">
-          <span>Check to Bottom</span>
-          <input
-            type="checkbox"
-            class="pomo-toggle"
-            bind:checked={localSettings.checkToBottom}
-            on:change={() => syncChanges(true)}
-          />
-        </div>
+        {#if localSettings.enableTasks}
+          <div class="pomo-switch-row">
+            <span>Auto Check Tasks</span>
+            <input
+              type="checkbox"
+              class="pomo-toggle"
+              bind:checked={localSettings.autoCheckTasks}
+              on:change={() => syncChanges(true)}
+            />
+          </div>
+          <div class="pomo-switch-row">
+            <span>Check to Bottom</span>
+            <input
+              type="checkbox"
+              class="pomo-toggle"
+              bind:checked={localSettings.checkToBottom}
+              on:change={() => syncChanges(true)}
+            />
+          </div>
+        {/if}
       </div>
 
       <div class="pomo-divider"></div>

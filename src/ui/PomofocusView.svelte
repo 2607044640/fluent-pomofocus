@@ -48,7 +48,7 @@
 
     timerService.onPomodoroComplete = () => {
       // Increment active task completed pomodoros
-      if (settings.activeTaskId) {
+      if (settings.enableTasks && settings.activeTaskId) {
         const active = settings.tasks.find((t) => t.id === settings.activeTaskId);
         if (active) {
           active.actPomodoros += 1;
@@ -278,86 +278,88 @@
     </div>
 
     <!-- TASKS SECTION -->
-    <section class="pomo-tasks-section">
-      <div class="pomo-tasks-header">
-        <span class="pomo-tasks-title">Tasks</span>
-        <div class="pomo-tasks-menu-wrapper">
-          <button class="pomo-icon-btn-round" on:click={() => (showTaskMenu = !showTaskMenu)} title="Task options">
-            <MoreVertical size={16} />
-          </button>
-          {#if showTaskMenu}
-            <div class="pomo-dropdown-menu">
-              <button on:click={clearFinishedTasks}>Clear finished tasks</button>
-              <button on:click={clearAllTasks}>Clear all tasks</button>
-            </div>
-          {/if}
-        </div>
-      </div>
-
-      <div class="pomo-tasks-list">
-        {#each settings.tasks as task (task.id)}
-          <div
-            class="pomo-task-item"
-            class:completed={task.completed}
-            class:active={settings.activeTaskId === task.id}
-            on:click={() => selectActiveTask(task.id)}
-            role="button"
-            tabindex="0"
-            on:keydown={(e) => e.key === 'Enter' && selectActiveTask(task.id)}
-          >
-            <button
-              class="pomo-task-check"
-              class:checked={task.completed}
-              on:click|stopPropagation={() => toggleTaskComplete(task)}
-              title="Mark complete"
-            >
-              {#if task.completed}
-                ✓
-              {/if}
+    {#if settings.enableTasks}
+      <section class="pomo-tasks-section">
+        <div class="pomo-tasks-header">
+          <span class="pomo-tasks-title">Tasks</span>
+          <div class="pomo-tasks-menu-wrapper">
+            <button class="pomo-icon-btn-round" on:click={() => (showTaskMenu = !showTaskMenu)} title="Task options">
+              <MoreVertical size={16} />
             </button>
-
-            <span class="pomo-task-title">{task.title}</span>
-
-            <div class="pomo-task-meta">
-              <span class="pomo-pomo-count">{task.actPomodoros} / {task.estPomodoros}</span>
-              <button
-                class="pomo-del-task-btn"
-                on:click|stopPropagation={() => deleteTask(task.id)}
-                title="Delete task"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
-
-      {#if !isAddingTask}
-        <button class="pomo-add-task-dashed" on:click={() => (isAddingTask = true)}>
-          <Plus size={18} />
-          <span>Add Task</span>
-        </button>
-      {:else}
-        <div class="pomo-add-task-card">
-          <input
-            type="text"
-            placeholder="What are you working on?"
-            class="pomo-add-title-input"
-            bind:value={newTaskTitle}
-            on:keydown={(e) => e.key === 'Enter' && addTask()}
-            use:autofocusAction
-          />
-          <div class="pomo-est-row">
-            <span>Est Pomodoros:</span>
-            <input type="number" min="1" max="20" class="pomo-est-input" bind:value={newTaskEst} />
-          </div>
-          <div class="pomo-add-actions">
-            <button class="pomo-btn-cancel" on:click={() => (isAddingTask = false)}>Cancel</button>
-            <button class="pomo-btn-save" on:click={addTask}>Save</button>
+            {#if showTaskMenu}
+              <div class="pomo-dropdown-menu">
+                <button on:click={clearFinishedTasks}>Clear finished tasks</button>
+                <button on:click={clearAllTasks}>Clear all tasks</button>
+              </div>
+            {/if}
           </div>
         </div>
-      {/if}
-    </section>
+
+        <div class="pomo-tasks-list">
+          {#each settings.tasks as task (task.id)}
+            <div
+              class="pomo-task-item"
+              class:completed={task.completed}
+              class:active={settings.activeTaskId === task.id}
+              on:click={() => selectActiveTask(task.id)}
+              role="button"
+              tabindex="0"
+              on:keydown={(e) => e.key === 'Enter' && selectActiveTask(task.id)}
+            >
+              <button
+                class="pomo-task-check"
+                class:checked={task.completed}
+                on:click|stopPropagation={() => toggleTaskComplete(task)}
+                title="Mark complete"
+              >
+                {#if task.completed}
+                  ✓
+                {/if}
+              </button>
+
+              <span class="pomo-task-title">{task.title}</span>
+
+              <div class="pomo-task-meta">
+                <span class="pomo-pomo-count">{task.actPomodoros} / {task.estPomodoros}</span>
+                <button
+                  class="pomo-del-task-btn"
+                  on:click|stopPropagation={() => deleteTask(task.id)}
+                  title="Delete task"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+        {#if !isAddingTask}
+          <button class="pomo-add-task-dashed" on:click={() => (isAddingTask = true)}>
+            <Plus size={18} />
+            <span>Add Task</span>
+          </button>
+        {:else}
+          <div class="pomo-add-task-card">
+            <input
+              type="text"
+              placeholder="What are you working on?"
+              class="pomo-add-title-input"
+              bind:value={newTaskTitle}
+              on:keydown={(e) => e.key === 'Enter' && addTask()}
+              use:autofocusAction
+            />
+            <div class="pomo-est-row">
+              <span>Est Pomodoros:</span>
+              <input type="number" min="1" max="20" class="pomo-est-input" bind:value={newTaskEst} />
+            </div>
+            <div class="pomo-add-actions">
+              <button class="pomo-btn-cancel" on:click={() => (isAddingTask = false)}>Cancel</button>
+              <button class="pomo-btn-save" on:click={addTask}>Save</button>
+            </div>
+          </div>
+        {/if}
+      </section>
+    {/if}
   </main>
 
   {#if showSettingModal}
