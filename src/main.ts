@@ -3,6 +3,7 @@ import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS } from "./mode
 import { SoundService } from "./services/SoundService";
 import { TimerService } from "./services/TimerService";
 import PomofocusView from "./ui/PomofocusView.svelte";
+import { PomofocusModal } from "./ui/PomofocusModal";
 import "./styles.css";
 
 export class PomofocusViewWrapper extends ItemView {
@@ -118,6 +119,14 @@ export default class FluentPomofocusPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "open-floating-modal",
+      name: "Open Pomofocus in Floating Window",
+      callback: () => {
+        this.openFloatingModal();
+      },
+    });
+
+    this.addCommand({
       id: "toggle-timer",
       name: "Start / Pause Pomofocus Timer",
       callback: () => {
@@ -174,5 +183,9 @@ export default class FluentPomofocusPlugin extends Plugin {
     } else {
       await this.activateView();
     }
+  }
+
+  openFloatingModal(): void {
+    new PomofocusModal(this.app, this).open();
   }
 }

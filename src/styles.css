@@ -3,3 +3,33 @@
   padding: 0 !important;
   overflow: hidden;
 }
+
+/* Fluent Pomofocus - Floating Modal Styles (A1 Floating UI Standard) */
+.fluent-pomofocus-modal {
+  width: var(--pomofocus-modal-width, 85vw) !important;
+  max-width: 680px !important;
+  height: var(--pomofocus-modal-height, 85vh) !important;
+  max-height: 820px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  background-color: var(--background-primary) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Hide native modal close button */
+.fluent-pomofocus-modal .modal-close-button {
+  display: none !important;
+}
+
+.fluent-pomofocus-modal .modal-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}

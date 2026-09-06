@@ -13,6 +13,7 @@
     MoreVertical,
     Trash2,
     SkipForward,
+    X,
   } from "lucide-svelte";
 
   export let app: App | undefined = undefined;
@@ -23,6 +24,8 @@
   export let soundService: SoundService;
   export let onSaveSettings: () => Promise<void>;
   export let onOpenSmallWindow: () => void;
+  export let isModal: boolean = false;
+  export let onClose: (() => void) | null = null;
 
   let timerState: TimerState = timerService.getState();
   let unsubscribeTimer: (() => void) | null = null;
@@ -208,6 +211,11 @@
         <SettingsIcon size={13} />
         <span class="pomo-btn-text">Setting</span>
       </button>
+      {#if isModal && onClose}
+        <button class="pomo-btn-nav pomo-btn-close" on:click={onClose} title="Close (Esc)">
+          <X size={13} />
+        </button>
+      {/if}
     </div>
   </header>
 
@@ -435,6 +443,13 @@
   .theme-obsidian .pomo-btn-nav:hover {
     background: var(--background-modifier-active-hover);
     color: var(--text-normal);
+  }
+  .pomo-btn-nav.pomo-btn-close {
+    padding: 4px 6px;
+  }
+  .pomo-btn-nav.pomo-btn-close:hover {
+    background: var(--background-modifier-error-hover, rgba(235, 87, 87, 0.2)) !important;
+    color: var(--text-error, #eb5757) !important;
   }
 
   .pomo-main-content {
