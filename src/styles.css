@@ -20,6 +20,15 @@
   flex-direction: column !important;
 }
 
+/* Floating Modal without Tasks: Widescreen Golden Aspect Ratio */
+.fluent-pomofocus-modal.no-tasks {
+  width: var(--pomofocus-modal-no-tasks-width, 640px) !important;
+  max-width: 90vw !important;
+  height: auto !important;
+  min-height: 400px !important;
+  max-height: 85vh !important;
+}
+
 /* Hide native modal close button */
 .fluent-pomofocus-modal .modal-close-button {
   display: none !important;
@@ -32,4 +41,8 @@
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+}
+
+.fluent-pomofocus-modal.no-tasks .modal-content {
+  height: auto !important;
 }

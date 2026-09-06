@@ -183,6 +183,13 @@
     await plugin.updateAndBroadcastSettings(e.detail, "modal");
   }
 
+  export function cycleMode(direction: 1 | -1) {
+    const modes: TimerMode[] = ["pomodoro", "shortBreak", "longBreak"];
+    const currentIndex = modes.indexOf(timerState.mode);
+    const nextIndex = (Math.max(0, currentIndex) + direction + modes.length) % modes.length;
+    handleModeChange(modes[nextIndex]);
+  }
+
   let wrapperEl: HTMLElement | null = null;
 
   function openSettingsModal() {
@@ -198,6 +205,8 @@
   class="pomo-app-wrapper"
   class:theme-obsidian={settings.colorTheme === "obsidian"}
   class:modal-open={showSettingModal}
+  class:is-modal={isModal}
+  class:no-tasks={!settings.enableTasks}
   style={settings.colorTheme === "obsidian" ? "" : `background-color: ${getThemeBgColor(timerState.mode, settings.colorTheme, timerState.isRunning, settings.darkModeWhenRunning)}`}
 >
   <!-- TOP NAV BAR -->
@@ -397,6 +406,56 @@
 
   .pomo-app-wrapper.modal-open {
     overflow: hidden;
+  }
+
+  /* Modal No-Tasks Widescreen Scaling & Proportion */
+  .pomo-app-wrapper.no-tasks.is-modal {
+    height: auto;
+    min-height: 400px;
+    justify-content: space-between;
+  }
+
+  @media (min-width: 460px) {
+    .pomo-app-wrapper.no-tasks .pomo-header {
+      max-width: 560px;
+      padding: 10px 16px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-main-content {
+      max-width: 560px;
+      flex: 1;
+      justify-content: center;
+      padding: 18px 20px 28px 20px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-timer-card {
+      padding: 22px 28px 26px 28px;
+      border-radius: 12px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-tabs {
+      gap: 6px;
+      padding: 4px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-tab {
+      font-size: 14px;
+      padding: 6px 18px;
+      border-radius: 6px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-time-display {
+      font-size: 84px;
+      margin: 10px 0 20px 0;
+      letter-spacing: 2px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-start-btn {
+      height: 46px;
+      padding: 0 44px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+    .pomo-app-wrapper.no-tasks .pomo-status-msg {
+      font-size: 15px;
+      margin-top: 14px;
+    }
   }
 
   .pomo-header {
