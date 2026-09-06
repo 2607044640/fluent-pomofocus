@@ -56,6 +56,7 @@ export default class FluentPomofocusPlugin extends Plugin {
   settings: PomofocusSettings = DEFAULT_SETTINGS;
   soundService!: SoundService;
   timerService!: TimerService;
+  private activeModal: PomofocusModal | null = null;
   private settingsListeners: Set<(settings: PomofocusSettings, source?: string) => void> = new Set();
 
   public onSettingsChange(listener: (settings: PomofocusSettings, source?: string) => void): () => void {
@@ -93,6 +94,9 @@ export default class FluentPomofocusPlugin extends Plugin {
       this.settings.currentMode = this.timerService.getState().mode;
       this.settings.pomodoroRound = this.timerService.getState().round;
       void this.saveSettings();
+    };
+    this.timerService.onNotificationClick = () => {
+      this.openFloatingModal();
     };
 
     this.registerView(
@@ -197,7 +201,15 @@ export default class FluentPomofocusPlugin extends Plugin {
   }
 
   openFloatingModal(): void {
-    new PomofocusModal(this.app, this).open();
+    if (this.activeModal && document.body.contains(this.activeModal.containerEl)) {
+      return;
+    }
+    this.activeModal = new PomofocusModal(this.app, this);
+    this.activeModal.open();
+  }
+
+  onModalClose(): void {
+    this.activeModal = null;
   }
 }
 

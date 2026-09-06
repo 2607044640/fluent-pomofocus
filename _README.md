@@ -49,7 +49,7 @@ For underlying architecture specifications, state management, API signatures, an
 - **Real Audio Effects & Caching**: Supports 5 official high-fidelity Pomofocus sound profiles: `Wood` (木鱼敲击), `Bell` (清脆钟鸣), `Bird` (自然鸟鸣), `Digital` (电子闹铃), and `Kitchen` (机械闹钟). Audio files are automatically downloaded from CDN and cached in vault storage for instant zero-latency playback.
 - **200% Loudness Amplification**: Integrated with Web Audio API `GainNode` scaling up to 2.0x alongside a `DynamicsCompressorNode`, ensuring alarm alerts are loud, crisp, and clearly audible even through quiet laptop speakers without distortion or clipping.
 - **Synthesizer Fallback**: Built-in multi-harmonic synthesized sound generator ensures alerts trigger instantly even in completely offline environments.
-- **Dual Notification**: Dispatches non-intrusive Obsidian in-app toasts alongside Windows desktop notifications.
+- **Dual Notification & Click-to-Focus**: Dispatches concise desktop notifications (`Rest!` when focus period completes, `Focus!` when break period ends). Clicking the Windows desktop toast or in-app notice automatically brings Obsidian to the foreground and opens the floating modal UI.
 
 ### 📋 Integrated Task Management & Total Removal Option
 - **Inline Task Creation**: Create tasks with estimated pomodoros.

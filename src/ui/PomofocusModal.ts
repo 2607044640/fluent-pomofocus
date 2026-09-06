@@ -91,6 +91,8 @@ export class PomofocusModal extends Modal {
   }
 
   onClose(): void {
+    this.plugin.onModalClose();
+
     if (this.unsubscribeSettings) {
       this.unsubscribeSettings();
       this.unsubscribeSettings = null;

@@ -30,6 +30,8 @@ export class TimerService {
   public onPomodoroComplete?: () => void;
   // Callback when state should be saved
   public onStateChange?: () => void;
+  // Callback when notification is clicked
+  public onNotificationClick?: () => void;
 
   constructor(settings: PomofocusSettings, soundService: SoundService) {
     this.settings = settings;
@@ -194,18 +196,9 @@ export class TimerService {
 
       void this.soundService.playSound(soundType, volume, repeat);
 
-      // System notification
-      const modeLabel =
-        completedMode === "pomodoro"
-          ? "Pomodoro Finished!"
-          : completedMode === "shortBreak"
-          ? "Short Break Ended!"
-          : "Long Break Ended!";
-      const nextMsg =
-        completedMode === "pomodoro"
-          ? "Time to take a break."
-          : "Time to focus!";
-      NotificationService.notify(modeLabel, nextMsg);
+      // System notification: Rest! when focus ends, Focus! when break ends
+      const notificationTitle = completedMode === "pomodoro" ? "Rest!" : "Focus!";
+      NotificationService.notify(notificationTitle, undefined, this.onNotificationClick);
     }
 
     if (completedMode === "pomodoro") {

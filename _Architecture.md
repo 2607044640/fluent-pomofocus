@@ -143,4 +143,9 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
    - `shortBreak` / `longBreak`: Triggers the Break Alarm set (default: Bell).
 3. **Dual-Surface Configuration**: Both sound sets are customizable with independent preview triggers in the in-view `SettingModal.svelte` and native Obsidian `PomofocusSettingTab`.
 
+### Invariant 9: Notification Click-to-Focus & Minimal Messaging
+1. **Concise Notification Text**: The notification text is kept strictly concise: `Rest!` when a Pomodoro focus period ends, and `Focus!` when a break period ends.
+2. **Click-to-Focus & Modal Dispatch**: Clicking the Windows desktop notification toast or the in-app notice automatically triggers `NotificationService.focusObsidianWindow()`, bringing Obsidian to the foreground (including restoring from minimized state) and opening the Pomofocus floating modal UI.
+3. **Modal Singleton Protection**: `openFloatingModal()` guards against duplicate modal instances if the floating modal is already open and mounted in the document.
+
 

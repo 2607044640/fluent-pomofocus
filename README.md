@@ -11,6 +11,7 @@ Eliminates browser background tab freezing, provides high-fidelity synthesized s
 - **Detached Popout Window ("Small Window")**: Detach Pomofocus into an independent floating mini-window while editing your notes in the main workspace.
 - **Keyboard Ergonomics**: `Space` to start/pause, `Ctrl + Tab` / `Ctrl + Shift + Tab` to cycle timer modes, and `Esc` to close floating window.
 - **Real Audio Effects & Dual Sound Profiles**: Supports official Pomofocus sound profiles (`Wood`, `Bell`, `Bird`, `Digital`, `Kitchen`) with separate, independent sound sets for Focus session completion vs. Break completion.
+- **Click-to-Focus Notifications**: Clean, concise notifications (`Rest!` on focus completion, `Focus!` on break completion). Clicking the Windows toast brings Obsidian to the foreground and opens the Pomofocus floating modal.
 - **Native Theme Following**: Automatically adapts to your active Obsidian theme palette (`--background-secondary`, `--background-primary`, `--interactive-accent`, `--text-normal`).
 - **Configurable Task System**: Integrated Pomofocus task list with estimation counts and auto-checking, plus a setting toggle to completely remove the task list for a pure countdown experience.
 
