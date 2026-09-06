@@ -7,14 +7,17 @@ Eliminates browser background tab freezing, provides high-fidelity synthesized s
 ## Features
 
 - **Drift-Free Precision Countdown**: Calculates `targetEndTime - Date.now()` on every tick, guaranteeing zero drift even during system sleep or heavy CPU load.
+- **Floating Modal Window (A1 UI Standard)**: Centered overlay modal with golden ratio widescreen adaptation (`640px` wide) and zero empty space.
 - **Detached Popout Window ("Small Window")**: Detach Pomofocus into an independent floating mini-window while editing your notes in the main workspace.
+- **Keyboard Ergonomics**: `Space` to start/pause, `Ctrl + Tab` / `Ctrl + Shift + Tab` to cycle timer modes, and `Esc` to close floating window.
 - **Real Audio Effects & Caching**: Supports official Pomofocus sound profiles: `Wood`, `Bell`, `Bird`, `Digital`, and `Kitchen`. Audio files are cached in vault storage for instant zero-latency playback.
 - **Native Theme Following**: Automatically adapts to your active Obsidian theme palette (`--background-secondary`, `--background-primary`, `--interactive-accent`, `--text-normal`).
-- **Interactive Task System**: Integrated Pomofocus task list supporting estimation vs actual Pomodoro counts, notes, drag reordering, and auto-checking.
+- **Configurable Task System**: Integrated Pomofocus task list with estimation counts and auto-checking, plus a setting toggle to completely remove the task list for a pure countdown experience.
 
 ## Commands
 
 - `Open Pomofocus in Sidebar`: Mounts Pomofocus in the right sidebar.
+- `Open Pomofocus in Floating Window`: Opens Pomofocus in an in-app floating modal overlay.
 - `Open Pomofocus in Small Window`: Opens Pomofocus in an independent floating mini-window.
 - `Start / Pause Pomofocus Timer`: Starts or pauses the active countdown.
 

@@ -82,6 +82,8 @@ export default class FluentPomofocusPlugin extends Plugin {
   }
 
   async onload(): Promise<void> {
+    this.addSettingTab(new PomofocusSettingTab(this.app, this));
+
     await this.loadSettings();
 
     this.soundService = new SoundService(this.app, this.manifest);
@@ -133,8 +135,6 @@ export default class FluentPomofocusPlugin extends Plugin {
         this.timerService.toggle();
       },
     });
-
-    this.addSettingTab(new PomofocusSettingTab(this.app, this));
   }
 
   onunload(): void {
