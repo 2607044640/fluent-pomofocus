@@ -23,11 +23,11 @@ For underlying architecture specifications, state management, API signatures, an
 | Action | Shortcut / Interaction | Description |
 | :--- | :--- | :--- |
 | **Open in Sidebar** | Command: `Open Pomofocus in Sidebar` | Mounts Pomofocus in the right sidebar |
-| **Open Floating Window** | Command: `Open Pomofocus in Floating Window` | Opens in-app floating modal overlay (`85vw` × `85vh`) with `Esc` / `Space` shortcuts |
+| **Open Floating Window** | Command: `Open Pomofocus in Floating Window` | Opens in-app floating modal overlay with `Esc` / `Space` / `Ctrl+Tab` shortcuts |
 | **Open Small Window** | Top Nav: `Small Window` / Command: `Open Pomofocus in Small Window` | Detaches into an independent floating mini-window |
 | **Start / Pause** | Giant Button / Command: `Start / Pause Pomofocus Timer` / `Space` (in Modal) | Toggles the active countdown |
+| **Switch Modes** | Tabs: `Pomodoro`, `Short Break`, `Long Break` / `Ctrl+Tab` (in Modal) | Switches period and adapts theme color |
 | **Skip Mode** | Button: `>>` (Next to start button) | Manually advances to next break or pomodoro |
-| **Switch Modes** | Tabs: `Pomodoro`, `Short Break`, `Long Break` | Switches period and adapts theme color |
 | **Add Task** | Button: `+ Add Task` | Inserts inline task with estimated pomodoro count |
 | **Configure Settings** | Top Nav: `Setting` button / Obsidian Settings | Opens preferences with instant live autosave |
 </layer_1_quick_start>
@@ -71,8 +71,12 @@ For underlying architecture specifications, state management, API signatures, an
 ## ⚙️ Layer 3: Advanced Usage & Integration
 
 ### 🪟 Floating Window (A1 Floating UI Standard)
-- Command `Open Pomofocus in Floating Window` (`open-floating-modal`) opens an in-app near full-screen overlay (`85vw` × `85vh`, max width `680px`, `12px` rounded corners, elevated depth shadow).
-- Keyboard Ergonomics: `Escape` closes the modal immediately; pressing `Space` (when not actively typing inside a text input) toggles timer Start / Pause.
+- Command `Open Pomofocus in Floating Window` (`open-floating-modal`) opens an in-app overlay (`12px` rounded corners, elevated depth shadow).
+- **Adaptive Golden Ratio Scaling**: When `Enable Tasks` is disabled, the window automatically scales to a comfortable widescreen proportion (`640px` width, `auto` height), expanding the timer card to `560px`, typography to `84px`, and vertically centering elements to eliminate empty dead space.
+- **Keyboard Ergonomics**:
+  - `Escape`: Closes the modal immediately.
+  - `Space`: Toggles timer Start / Pause (suppressed when typing in inputs or when the settings modal is active).
+  - `Ctrl + Tab` / `Ctrl + Shift + Tab`: Cycles timer modes right / left (`Pomodoro` ↔ `Short Break` ↔ `Long Break`) in capture phase without UI hint clutter, strictly active only while the modal UI is open.
 - Integrated `✕` button on the top nav bar enables instant one-click dismissal.
 
 ### 🪟 Small Window Physics

@@ -123,12 +123,16 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 <!-- END USER-SPECIFIED -->
 
 ### Invariant 6: A1 Floating Modal UI Standard
-1. **Window Dimensions & Positioning**: The floating modal strictly adheres to the standard `width: 85vw`, `max-width: 680px`, `height: 85vh`, `max-height: 85vh` with a `12px` border radius, centered on the active screen viewport.
+1. **Window Dimensions & Positioning**:
+   - Default with tasks: `width: 85vw`, `max-width: 680px`, `height: 85vh`, `max-height: 85vh` with a `12px` border radius, centered on the active screen viewport.
+   - Widescreen golden ratio (without tasks): When `enableTasks` is disabled, the modal automatically transitions to `width: 640px` and `height: auto` (`min-height: 400px`), expanding the card to `560px` with prominent `84px` typography and vertically centered layout to eliminate empty dead space.
 2. **Native Obsidian Modal Suppression**: Hides Obsidian's default `.modal-close-button` and uses an integrated top-right close icon (`✕`) inside the Svelte view header with clean hover responsiveness.
-3. **Ergonomic Keyboard Shortcuts**:
+3. **Ergonomic Keyboard Shortcuts (Modal-Scoped)**:
    - `Escape`: Instantly dismisses the floating modal.
-   - `Space`: Toggles start/pause for the active timer mode, automatically suppressed when the user is typing inside an `input`, `textarea`, or contenteditable element.
+   - `Space`: Toggles start/pause for the active timer mode, automatically suppressed when typing inside inputs or when the settings modal is active.
+   - `Ctrl + Tab` / `Ctrl + Shift + Tab`: Cycles timer modes right / left (`Pomodoro` ↔ `Short Break` ↔ `Long Break`) in capture phase without UI hint labels, strictly active only while the modal UI is open.
 
 ### Invariant 7: Total Task Decoupling (`enableTasks`)
 1. **Conditional Mounting**: When `enableTasks` is toggled off, the entire task section (`.pomo-tasks`), task management buttons, and completion counters are unmounted from the DOM.
 2. **Dual-Surface Configuration**: The toggle is exposed in both the in-view `SettingModal.svelte` and native Obsidian `PomofocusSettingTab`, propagating updates through `updateAndBroadcastSettings` for immediate reactive unmounting without reload.
+
