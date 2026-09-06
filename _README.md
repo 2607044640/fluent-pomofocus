@@ -23,12 +23,13 @@ For underlying architecture specifications, state management, API signatures, an
 | Action | Shortcut / Interaction | Description |
 | :--- | :--- | :--- |
 | **Open in Sidebar** | Command: `Open Pomofocus in Sidebar` | Mounts Pomofocus in the right sidebar |
+| **Open Floating Window** | Command: `Open Pomofocus in Floating Window` | Opens in-app floating modal overlay (`85vw` × `85vh`) with `Esc` / `Space` shortcuts |
 | **Open Small Window** | Top Nav: `Small Window` / Command: `Open Pomofocus in Small Window` | Detaches into an independent floating mini-window |
-| **Start / Pause** | Giant Button / Command: `Start / Pause Pomofocus Timer` | Toggles the active countdown |
+| **Start / Pause** | Giant Button / Command: `Start / Pause Pomofocus Timer` / `Space` (in Modal) | Toggles the active countdown |
 | **Skip Mode** | Button: `>>` (Next to start button) | Manually advances to next break or pomodoro |
 | **Switch Modes** | Tabs: `Pomodoro`, `Short Break`, `Long Break` | Switches period and adapts theme color |
 | **Add Task** | Button: `+ Add Task` | Inserts inline task with estimated pomodoro count |
-| **Configure Settings** | Top Nav: `Setting` button | Opens in-view preferences with instant live autosave |
+| **Configure Settings** | Top Nav: `Setting` button / Obsidian Settings | Opens preferences with instant live autosave |
 </layer_1_quick_start>
 
 ---
@@ -49,9 +50,10 @@ For underlying architecture specifications, state management, API signatures, an
 - **Synthesizer Fallback**: Built-in multi-harmonic synthesized sound generator ensures alerts trigger instantly even in completely offline environments.
 - **Dual Notification**: Dispatches non-intrusive Obsidian in-app toasts alongside Windows desktop notifications.
 
-### 📋 Integrated Task Management
+### 📋 Integrated Task Management & Total Removal Option
 - **Inline Task Creation**: Create tasks with estimated pomodoros.
 - **Auto-Check & Sinking**: Optionally auto-marks tasks as done when estimated pomodoros are reached, and moves finished tasks to the bottom of the list.
+- **Zero-Distraction Total Task Removal**: Users who desire a pure, minimalist Pomodoro timer can disable `Enable Tasks` in the Setting modal or Obsidian Settings panel. When toggled off, the entire task section, "+ Add Task" button, inputs, and active task badges are completely unmounted from the DOM.
 
 ### 🎨 Native Obsidian Theme Harmony & Fluid Typography
 - **Seamless Theme Following**: By default, Pomofocus automatically adopts your active Obsidian theme palette (`--background-secondary`, `--background-primary`, `--interactive-accent`, `--text-normal`).
@@ -59,7 +61,7 @@ For underlying architecture specifications, state management, API signatures, an
 - **Custom Color Swatches**: Users can switch between the native Obsidian theme and classic Pomofocus saturated styles (Teal, Green, Blue) anytime via the Setting modal.
 
 ### ⚙️ Integrated In-View Settings with Instant Autosave
-- **Dedicated Preferences Center**: All timer durations, automation toggles, alert tones, volume levels, repeats, and color themes are managed directly through the top-nav **Setting** modal in both sidebar and Small Window views.
+- **Dedicated Preferences Center**: All timer durations, automation toggles, alert tones, volume levels, repeats, task visibility, and color themes are managed directly through the top-nav **Setting** modal in sidebar, floating modal, and Small Window views.
 - **Zero-Friction Live Autosave**: Modifications take effect in real time as values are typed or toggles are clicked, immediately updating the active timer and writing to vault storage without requiring Obsidian restarts.
 </layer_2_detailed_guide>
 
@@ -67,6 +69,11 @@ For underlying architecture specifications, state management, API signatures, an
 
 <layer_3_advanced>
 ## ⚙️ Layer 3: Advanced Usage & Integration
+
+### 🪟 Floating Window (A1 Floating UI Standard)
+- Command `Open Pomofocus in Floating Window` (`open-floating-modal`) opens an in-app near full-screen overlay (`85vw` × `85vh`, max width `680px`, `12px` rounded corners, elevated depth shadow).
+- Keyboard Ergonomics: `Escape` closes the modal immediately; pressing `Space` (when not actively typing inside a text input) toggles timer Start / Pause.
+- Integrated `✕` button on the top nav bar enables instant one-click dismissal.
 
 ### 🪟 Small Window Physics
 - Triggering `Small Window` uses Obsidian's native `openPopoutLeaf` API.

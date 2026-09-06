@@ -12,7 +12,10 @@ graph TD
     Plugin --> SoundService[SoundService]
     Plugin --> NotificationService[NotificationService]
     Plugin --> ViewWrapper[PomofocusViewWrapper ItemView]
+    Plugin --> FloatingModal[PomofocusModal Modal]
+    Plugin --> SettingTab[PomofocusSettingTab PluginSettingTab]
     ViewWrapper --> View[PomofocusView.svelte]
+    FloatingModal --> View
     View --> Modal[SettingModal.svelte]
     TimerService --> SoundService
     TimerService --> NotificationService
@@ -22,13 +25,13 @@ graph TD
 ```
 
 ### 1.1 Data Movement Flow
-1. **User Action**: The user edits a configuration option inside the **In-View Setting Modal** (`SettingModal.svelte`) in the sidebar or Small Window.
+1. **User Action**: The user edits a configuration option inside the **In-View Setting Modal** (`SettingModal.svelte`) in the sidebar or Small Window, or via the Obsidian Settings tab (`PomofocusSettingTab`).
 2. **Instant Autosave & Central Mutation**: The modal triggers `plugin.updateAndBroadcastSettings(patch, "modal")` (debounced on number inputs, instant on toggles/swatches/selects).
    - `Object.assign(this.settings, patch)` updates the in-memory singleton.
    - `await this.saveSettings()` asynchronously flushes to `data.json`.
 3. **Timer Service Recalibration**: `TimerService.updateSettings(settings)` updates mode durations. If currently paused, it immediately resets `remainingSeconds` to the new mode duration and triggers `this.notify()`.
 4. **Broadcast & UI Alignment**:
-   - `PomofocusView.svelte` receives the event and updates its local reactive `settings` store, immediately updating color themes and display parameters without requiring an Obsidian restart.
+   - `PomofocusView.svelte` receives the event and updates its local reactive `settings` store, immediately updating color themes, task section visibility (`enableTasks`), and display parameters without requiring an Obsidian restart.
 
 ---
 
@@ -43,9 +46,9 @@ C:\ObsidianPublish\fluent-pomofocus\
 ├── _README.md                 # Layered user guide and cheatsheet
 ├── _Architecture.md           # Architecture specifications & invariants
 └── src/
-    ├── main.ts                # Plugin lifecycle, settings broadcaster, ItemView wrapper
+    ├── main.ts                # Plugin lifecycle, settings broadcaster, ItemView wrapper, SettingTab
     ├── declarations.d.ts      # CSS and Svelte ambient declarations
-    ├── styles.css             # Base leaf styling
+    ├── styles.css             # Base leaf and floating modal styling
     ├── models/
     │   └── types.ts           # Domain models, mode types, and default settings
     ├── services/
@@ -53,6 +56,7 @@ C:\ObsidianPublish\fluent-pomofocus\
     │   ├── TimerService.ts    # Drift-free timestamp-driven timer engine
     │   └── NotificationService.ts # Windows + Obsidian toast notification dispatcher
     └── ui/
+        ├── PomofocusModal.ts  # Floating modal container conforming to A1 floating standard
         ├── PomofocusView.svelte # Primary Svelte view (Timer card + Task list)
         └── SettingModal.svelte  # Absolute-positioned modal settings dialog
 ```
@@ -63,11 +67,13 @@ C:\ObsidianPublish\fluent-pomofocus\
 
 | Component | Responsible For | MUST NOT Contain |
 | :--- | :--- | :--- |
-| `FluentPomofocusPlugin` | Lifecycle, settings broadcast SSOT, view registration, popout leaf trigger | Direct UI rendering, audio synthesis logic |
+| `FluentPomofocusPlugin` | Lifecycle, settings broadcast SSOT, view registration, popout leaf trigger, command palette dispatcher | Direct UI rendering, audio synthesis logic |
 | `TimerService` | Absolute timestamp calculation, mode transitions, countdown tick loop | DOM manipulation, settings persistence IO |
 | `SoundService` | Audio buffer fetching, local vault caching, GainNode amplification, dynamic compressor, fallback synthesis | Timer state, UI bindings |
 | `NotificationService` | HTML5 Notification API and Obsidian Notice toasts | Audio playback, timer state |
-| `PomofocusView.svelte` | Timer visualization, interactive task operations, small window trigger | Audio synthesis math, standalone timer interval |
+| `PomofocusModal` | Floating window lifecycle, native Obsidian Modal container, keyboard capture (Esc, Space shortcut) | Business countdown logic, audio synthesis |
+| `PomofocusView.svelte` | Timer visualization, interactive task operations, small window trigger, in-modal close button | Audio synthesis math, standalone timer interval |
+| `PomofocusSettingTab` | Obsidian Settings Tab surface, quick toggle for `enableTasks` and core options | Audio preview synthesis, custom slider rendering |
 | `SettingModal.svelte` | In-view configuration editing, real-time autosave dispatch, audio preview | Direct file storage operations |
 
 ---
@@ -76,6 +82,7 @@ C:\ObsidianPublish\fluent-pomofocus\
 
 | Class / Method | Signature | Side-Effects |
 | :--- | :--- | :--- |
+| `Plugin.openFloatingModal` | `() => void` | Instantiates and displays `PomofocusModal` floating window |
 | `Plugin.updateAndBroadcastSettings` | `(newSettings: Partial<PomofocusSettings>, source?: string) => Promise<void>` | Mutates `this.settings`, saves to disk, updates `TimerService`, emits to all listeners |
 | `Plugin.onSettingsChange` | `(listener: (settings: PomofocusSettings, source?: string) => void) => () => void` | Registers listener in `settingsListeners` set; returns unsubscription callback |
 | `TimerService.updateSettings` | `(newSettings: PomofocusSettings) => void` | Updates internal config; if paused, resets `remainingSeconds` and invokes `notify()` |
@@ -114,3 +121,14 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 2. **Minimal Header**: Top bar omits redundant plugin brand titles to eliminate sidebar vertical clutter, reserving space purely for utility actions (`Small Window`, `Setting`).
 3. **Sidebar-Adapted Scale**: Countdown display is proportioned to 56px, tabs to 12px, buttons to 38px, and card padding to 14-16px to prevent horizontal overflow and rigid visual dominance in narrow (250px-350px) sidebar leaves.
 <!-- END USER-SPECIFIED -->
+
+### Invariant 6: A1 Floating Modal UI Standard
+1. **Window Dimensions & Positioning**: The floating modal strictly adheres to the standard `width: 85vw`, `max-width: 680px`, `height: 85vh`, `max-height: 85vh` with a `12px` border radius, centered on the active screen viewport.
+2. **Native Obsidian Modal Suppression**: Hides Obsidian's default `.modal-close-button` and uses an integrated top-right close icon (`✕`) inside the Svelte view header with clean hover responsiveness.
+3. **Ergonomic Keyboard Shortcuts**:
+   - `Escape`: Instantly dismisses the floating modal.
+   - `Space`: Toggles start/pause for the active timer mode, automatically suppressed when the user is typing inside an `input`, `textarea`, or contenteditable element.
+
+### Invariant 7: Total Task Decoupling (`enableTasks`)
+1. **Conditional Mounting**: When `enableTasks` is toggled off, the entire task section (`.pomo-tasks`), task management buttons, and completion counters are unmounted from the DOM.
+2. **Dual-Surface Configuration**: The toggle is exposed in both the in-view `SettingModal.svelte` and native Obsidian `PomofocusSettingTab`, propagating updates through `updateAndBroadcastSettings` for immediate reactive unmounting without reload.
