@@ -10,7 +10,7 @@ Eliminates browser background tab freezing, provides high-fidelity synthesized s
 - **Floating Modal Window (A1 UI Standard)**: Centered overlay modal with golden ratio widescreen adaptation (`640px` wide) and zero empty space.
 - **Detached Popout Window ("Small Window")**: Detach Pomofocus into an independent floating mini-window while editing your notes in the main workspace.
 - **Keyboard Ergonomics**: `Space` to start/pause, `Ctrl + Tab` / `Ctrl + Shift + Tab` to cycle timer modes, and `Esc` to close floating window.
-- **Real Audio Effects & Caching**: Supports official Pomofocus sound profiles: `Wood`, `Bell`, `Bird`, `Digital`, and `Kitchen`. Audio files are cached in vault storage for instant zero-latency playback.
+- **Real Audio Effects & Dual Sound Profiles**: Supports official Pomofocus sound profiles (`Wood`, `Bell`, `Bird`, `Digital`, `Kitchen`) with separate, independent sound sets for Focus session completion vs. Break completion.
 - **Native Theme Following**: Automatically adapts to your active Obsidian theme palette (`--background-secondary`, `--background-primary`, `--interactive-accent`, `--text-normal`).
 - **Configurable Task System**: Integrated Pomofocus task list with estimation counts and auto-checking, plus a setting toggle to completely remove the task list for a pure countdown experience.
 

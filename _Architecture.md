@@ -136,3 +136,11 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 1. **Conditional Mounting**: When `enableTasks` is toggled off, the entire task section (`.pomo-tasks`), task management buttons, and completion counters are unmounted from the DOM.
 2. **Dual-Surface Configuration**: The toggle is exposed in both the in-view `SettingModal.svelte` and native Obsidian `PomofocusSettingTab`, propagating updates through `updateAndBroadcastSettings` for immediate reactive unmounting without reload.
 
+### Invariant 8: Dual Sound Profiles (Focus vs. Break)
+1. **Dedicated Sound Sets**: Focus period completion and Break period completion are governed by independent sound profiles (`focusAlarmSound`/`focusAlarmVolume`/`focusAlarmRepeat` vs. `breakAlarmSound`/`breakAlarmVolume`/`breakAlarmRepeat`).
+2. **Context-Aware Completion Trigger**: When a countdown reaches zero, `completeCurrentPeriod` inspects the completing mode:
+   - `pomodoro`: Triggers the Focus Alarm set (default: Wood).
+   - `shortBreak` / `longBreak`: Triggers the Break Alarm set (default: Bell).
+3. **Dual-Surface Configuration**: Both sound sets are customizable with independent preview triggers in the in-view `SettingModal.svelte` and native Obsidian `PomofocusSettingTab`.
+
+

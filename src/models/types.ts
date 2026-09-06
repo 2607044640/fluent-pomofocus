@@ -30,11 +30,19 @@ export interface PomofocusSettings {
   autoCheckTasks: boolean;
   checkToBottom: boolean;
 
-  // Sounds
+  // Sounds (Dual Sound Sets: Focus vs Break)
   alarmSound: SoundType;
   alarmVolume: number; // 0-100
   alarmRepeat: number; // repeat count
   focusSound: string;
+
+  focusAlarmSound: SoundType;
+  focusAlarmVolume: number;
+  focusAlarmRepeat: number;
+
+  breakAlarmSound: SoundType;
+  breakAlarmVolume: number;
+  breakAlarmRepeat: number;
 
   // Themes & UI
   colorTheme: "obsidian" | "teal" | "green" | "blue";
@@ -65,6 +73,14 @@ export const DEFAULT_SETTINGS: PomofocusSettings = {
   alarmVolume: 80,
   alarmRepeat: 2,
   focusSound: "none",
+
+  focusAlarmSound: "wood",
+  focusAlarmVolume: 80,
+  focusAlarmRepeat: 2,
+
+  breakAlarmSound: "bell",
+  breakAlarmVolume: 80,
+  breakAlarmRepeat: 2,
 
   colorTheme: "obsidian",
   hourFormat: "24",

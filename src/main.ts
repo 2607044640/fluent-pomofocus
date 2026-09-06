@@ -146,6 +146,15 @@ export default class FluentPomofocusPlugin extends Plugin {
   async loadSettings(): Promise<void> {
     const loaded = (await this.loadData()) as Partial<PomofocusSettings> | null;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded);
+    if (loaded && !loaded.focusAlarmSound && loaded.alarmSound) {
+      this.settings.focusAlarmSound = loaded.alarmSound;
+    }
+    if (loaded && loaded.focusAlarmVolume === undefined && loaded.alarmVolume !== undefined) {
+      this.settings.focusAlarmVolume = loaded.alarmVolume;
+    }
+    if (loaded && loaded.focusAlarmRepeat === undefined && loaded.alarmRepeat !== undefined) {
+      this.settings.focusAlarmRepeat = loaded.alarmRepeat;
+    }
   }
 
   async saveSettings(): Promise<void> {
@@ -216,6 +225,44 @@ export class PomofocusSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.enableTasks)
           .onChange(async (value) => {
             await this.plugin.updateAndBroadcastSettings({ enableTasks: value }, "setting-tab");
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Sound")
+      .setHeading();
+
+    new Setting(containerEl)
+      .setName("Focus alarm sound")
+      .setDesc("Sound played when a focus session completes.")
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOption("wood", "Wood (木块/木鱼)")
+          .addOption("bell", "Bell (清脆钟鸣)")
+          .addOption("bird", "Bird (自然鸟鸣)")
+          .addOption("digital", "Digital (电子闹铃)")
+          .addOption("kitchen", "Kitchen (机械闹钟)")
+          .addOption("none", "None (静音)")
+          .setValue(this.plugin.settings.focusAlarmSound || "wood")
+          .onChange(async (val) => {
+            await this.plugin.updateAndBroadcastSettings({ focusAlarmSound: val as any, alarmSound: val as any }, "setting-tab");
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Break alarm sound")
+      .setDesc("Sound played when a short or long break completes.")
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOption("wood", "Wood (木块/木鱼)")
+          .addOption("bell", "Bell (清脆钟鸣)")
+          .addOption("bird", "Bird (自然鸟鸣)")
+          .addOption("digital", "Digital (电子闹铃)")
+          .addOption("kitchen", "Kitchen (机械闹钟)")
+          .addOption("none", "None (静音)")
+          .setValue(this.plugin.settings.breakAlarmSound || "bell")
+          .onChange(async (val) => {
+            await this.plugin.updateAndBroadcastSettings({ breakAlarmSound: val as any }, "setting-tab");
           });
       });
   }

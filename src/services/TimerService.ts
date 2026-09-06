@@ -181,12 +181,18 @@ export class TimerService {
     const completedMode = this.mode;
 
     if (playAlert) {
-      // Play configured alarm sound
-      this.soundService.playSound(
-        this.settings.alarmSound,
-        this.settings.alarmVolume,
-        this.settings.alarmRepeat
-      );
+      const isFocus = completedMode === "pomodoro";
+      const soundType = isFocus
+        ? (this.settings.focusAlarmSound || this.settings.alarmSound || "wood")
+        : (this.settings.breakAlarmSound || "bell");
+      const volume = isFocus
+        ? (this.settings.focusAlarmVolume ?? this.settings.alarmVolume ?? 80)
+        : (this.settings.breakAlarmVolume ?? 80);
+      const repeat = isFocus
+        ? (this.settings.focusAlarmRepeat ?? this.settings.alarmRepeat ?? 2)
+        : (this.settings.breakAlarmRepeat ?? 2);
+
+      void this.soundService.playSound(soundType, volume, repeat);
 
       // System notification
       const modeLabel =

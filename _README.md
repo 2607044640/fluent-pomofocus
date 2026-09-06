@@ -44,7 +44,8 @@ For underlying architecture specifications, state management, API signatures, an
   - `Short Break`: Relax and recharge (default 10 mins).
   - `Long Break`: Extended recovery after a cycle of intervals (default 20 mins every 3 rounds).
 
-### 🔔 Real Sound Library, Loudness Amplification & Notifications
+### 🔔 Real Sound Library, Dual Sound Sets & Notifications
+- **Dual Sound Profiles (Focus vs. Break)**: Separate sound settings for Focus sessions vs. Break periods. Customize distinct alarm sounds (e.g. Wood for Focus completion, Bell for Break completion), volume levels, and repeat counts for each state.
 - **Real Audio Effects & Caching**: Supports 5 official high-fidelity Pomofocus sound profiles: `Wood` (木鱼敲击), `Bell` (清脆钟鸣), `Bird` (自然鸟鸣), `Digital` (电子闹铃), and `Kitchen` (机械闹钟). Audio files are automatically downloaded from CDN and cached in vault storage for instant zero-latency playback.
 - **200% Loudness Amplification**: Integrated with Web Audio API `GainNode` scaling up to 2.0x alongside a `DynamicsCompressorNode`, ensuring alarm alerts are loud, crisp, and clearly audible even through quiet laptop speakers without distortion or clipping.
 - **Synthesizer Fallback**: Built-in multi-harmonic synthesized sound generator ensures alerts trigger instantly even in completely offline environments.
