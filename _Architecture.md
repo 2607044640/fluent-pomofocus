@@ -9,6 +9,7 @@ For user documentation and usage instructions, please refer to: [_README.md](fil
 ```mermaid
 graph TD
     Plugin[FluentPomofocusPlugin main.ts] --> TimerService[TimerService]
+    Plugin --> SettingsService[SettingsService]
     Plugin --> SoundService[SoundService]
     Plugin --> NotificationService[NotificationService]
     Plugin --> ViewWrapper[PomofocusViewWrapper ItemView]
@@ -52,8 +53,9 @@ C:\ObsidianPublish\fluent-pomofocus\
     ├── models/
     │   └── types.ts           # Domain models, mode types, and default settings
     ├── services/
-    │   ├── SoundService.ts    # Web Audio API oscillator synthesis engine
-    │   ├── TimerService.ts    # Drift-free timestamp-driven timer engine
+    │   ├── SettingsService.ts     # Dedicated vault-config persistence engine
+    │   ├── SoundService.ts        # Web Audio API oscillator synthesis engine
+    │   ├── TimerService.ts        # Drift-free timestamp-driven timer engine
     │   └── NotificationService.ts # Windows + Obsidian toast notification dispatcher
     └── ui/
         ├── PomofocusModal.ts  # Floating modal container conforming to A1 floating standard
@@ -68,6 +70,7 @@ C:\ObsidianPublish\fluent-pomofocus\
 | Component | Responsible For | MUST NOT Contain |
 | :--- | :--- | :--- |
 | `FluentPomofocusPlugin` | Lifecycle, settings broadcast SSOT, view registration, popout leaf trigger, command palette dispatcher | Direct UI rendering, audio synthesis logic |
+| `SettingsService` | Persistent file I/O outside plugin directory, legacy migration, path resolution | DOM rendering, audio synthesis |
 | `TimerService` | Absolute timestamp calculation, mode transitions, countdown tick loop | DOM manipulation, settings persistence IO |
 | `SoundService` | Audio buffer fetching, local vault caching, GainNode amplification, dynamic compressor, fallback synthesis | Timer state, UI bindings |
 | `NotificationService` | HTML5 Notification API and Obsidian Notice toasts | Audio playback, timer state |
@@ -147,5 +150,12 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 1. **Concise Notification Text**: The notification text is kept strictly concise: `Rest!` when a Pomodoro focus period ends, and `Focus!` when a break period ends.
 2. **Click-to-Focus & Modal Dispatch**: Clicking the Windows desktop notification toast or the in-app notice automatically triggers `NotificationService.focusObsidianWindow()`, bringing Obsidian to the foreground (including restoring from minimized state) and opening the Pomofocus floating modal UI.
 3. **Modal Singleton Protection**: `openFloatingModal()` guards against duplicate modal instances if the floating modal is already open and mounted in the document.
+
+### Invariant 10: Dedicated Settings Persistence & Update Protection
+1. **Isolated Storage Location**: Settings are stored in a dedicated persistent file outside the plugin installation directory (by default `${app.vault.configDir}/fluent-pomofocus.json`, e.g. `.obsidian/fluent-pomofocus.json`).
+2. **Update Immune**: Because the settings file resides outside `.obsidian/plugins/fluent-pomofocus/`, updating, re-installing, or wiping the plugin directory never destroys user preferences, customized sound settings, or task records.
+3. **Seamless Migration & Redundancy**: On startup, `SettingsService` checks the dedicated vault configuration file. If missing, it automatically migrates legacy `.obsidian/plugins/fluent-pomofocus/data.json` data. When saving, it writes to the dedicated file and mirrors to `plugin.saveData()` as a safety fallback.
+4. **Custom Storage Path Support**: Users can optionally specify a custom path within their vault (e.g. `TodoData/pomofocus.json`) via `customStoragePath`.
+
 
 

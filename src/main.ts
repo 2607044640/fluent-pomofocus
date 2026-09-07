@@ -2,6 +2,7 @@ import { Plugin, ItemView, WorkspaceLeaf, PluginSettingTab, Setting, App } from 
 import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS } from "./models/types";
 import { SoundService } from "./services/SoundService";
 import { TimerService } from "./services/TimerService";
+import { SettingsService } from "./services/SettingsService";
 import PomofocusView from "./ui/PomofocusView.svelte";
 import { PomofocusModal } from "./ui/PomofocusModal";
 import "./styles.css";
@@ -54,6 +55,7 @@ export class PomofocusViewWrapper extends ItemView {
 
 export default class FluentPomofocusPlugin extends Plugin {
   settings: PomofocusSettings = DEFAULT_SETTINGS;
+  settingsService!: SettingsService;
   soundService!: SoundService;
   timerService!: TimerService;
   private activeModal: PomofocusModal | null = null;
@@ -83,6 +85,7 @@ export default class FluentPomofocusPlugin extends Plugin {
   }
 
   async onload(): Promise<void> {
+    this.settingsService = new SettingsService(this.app, this);
     this.addSettingTab(new PomofocusSettingTab(this.app, this));
 
     await this.loadSettings();
@@ -148,21 +151,11 @@ export default class FluentPomofocusPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const loaded = (await this.loadData()) as Partial<PomofocusSettings> | null;
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded);
-    if (loaded && !loaded.focusAlarmSound && loaded.alarmSound) {
-      this.settings.focusAlarmSound = loaded.alarmSound;
-    }
-    if (loaded && loaded.focusAlarmVolume === undefined && loaded.alarmVolume !== undefined) {
-      this.settings.focusAlarmVolume = loaded.alarmVolume;
-    }
-    if (loaded && loaded.focusAlarmRepeat === undefined && loaded.alarmRepeat !== undefined) {
-      this.settings.focusAlarmRepeat = loaded.alarmRepeat;
-    }
+    this.settings = await this.settingsService.loadSettings();
   }
 
   async saveSettings(): Promise<void> {
-    await this.saveData(this.settings);
+    await this.settingsService.saveSettings(this.settings);
   }
 
   async activateView(): Promise<void> {
@@ -275,6 +268,24 @@ export class PomofocusSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.breakAlarmSound || "bell")
           .onChange(async (val) => {
             await this.plugin.updateAndBroadcastSettings({ breakAlarmSound: val as any }, "setting-tab");
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Storage")
+      .setHeading();
+
+    const currentPath = this.plugin.settingsService.getEffectivePath(this.plugin.settings.customStoragePath);
+
+    new Setting(containerEl)
+      .setName("Settings file location")
+      .setDesc(`Currently active file: ${currentPath}. Saved independently outside the plugin directory to ensure settings and tasks are never wiped during plugin updates.`)
+      .addText((text) => {
+        text
+          .setPlaceholder(this.plugin.settingsService.getEffectivePath())
+          .setValue(this.plugin.settings.customStoragePath || "")
+          .onChange(async (val) => {
+            await this.plugin.updateAndBroadcastSettings({ customStoragePath: val.trim() }, "setting-tab");
           });
       });
   }

@@ -49,6 +49,9 @@ export interface PomofocusSettings {
   hourFormat: "24" | "12";
   darkModeWhenRunning: boolean;
 
+  // Storage
+  customStoragePath?: string;
+
   // Persisted state
   currentMode: TimerMode;
   pomodoroRound: number;
@@ -85,6 +88,8 @@ export const DEFAULT_SETTINGS: PomofocusSettings = {
   colorTheme: "obsidian",
   hourFormat: "24",
   darkModeWhenRunning: false,
+
+  customStoragePath: "",
 
   currentMode: "pomodoro",
   pomodoroRound: 1,

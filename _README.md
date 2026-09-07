@@ -64,6 +64,11 @@ For underlying architecture specifications, state management, API signatures, an
 ### ⚙️ Integrated In-View Settings with Instant Autosave
 - **Dedicated Preferences Center**: All timer durations, automation toggles, alert tones, volume levels, repeats, task visibility, and color themes are managed directly through the top-nav **Setting** modal in sidebar, floating modal, and Small Window views.
 - **Zero-Friction Live Autosave**: Modifications take effect in real time as values are typed or toggles are clicked, immediately updating the active timer and writing to vault storage without requiring Obsidian restarts.
+
+### 💾 Dedicated Settings Persistence & Update Protection
+- **Isolated Outside Plugin Folder**: User settings and task records are saved to an independent persistent file (`.obsidian/fluent-pomofocus.json`, or a custom vault location configured in Settings).
+- **Never Lost During Updates**: Because configuration lives outside `.obsidian/plugins/fluent-pomofocus/`, updating, re-installing, or wiping the plugin directory will never reset your timer durations, sound volume, theme, or task history.
+- **Automatic Fallback & Migration**: Automatically detects and migrates legacy plugin `data.json` while maintaining dual-write redundancy.
 </layer_2_detailed_guide>
 
 ---

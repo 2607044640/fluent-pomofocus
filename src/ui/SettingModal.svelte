@@ -410,6 +410,17 @@
           </button>
         </div>
       </div>
+
+      <div class="pomo-divider"></div>
+
+      <!-- STORAGE SECTION -->
+      <div class="pomo-section">
+        <div class="pomo-section-title">💾 STORAGE</div>
+        <div class="pomo-storage-row">
+          <span class="pomo-storage-desc">Settings File (配置与任务单独保存，插件更新不丢失):</span>
+          <span class="pomo-storage-path">{plugin.settingsService ? plugin.settingsService.getEffectivePath(localSettings.customStoragePath) : ".obsidian/fluent-pomofocus.json"}</span>
+        </div>
+      </div>
     </div>
 
     <div class="pomo-modal-footer">
@@ -587,6 +598,31 @@
     height: 1px;
     background: rgba(255, 255, 255, 0.08);
     margin: 4px 0;
+  }
+
+  .pomo-storage-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 4px 0;
+  }
+
+  .pomo-storage-desc {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .pomo-storage-path {
+    font-size: 11px;
+    color: #aaa;
+    font-family: var(--font-monospace, monospace);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    word-break: break-all;
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   .pomo-group-label {
