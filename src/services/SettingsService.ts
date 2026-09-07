@@ -81,11 +81,20 @@ export class SettingsService {
     if (loaded && !loaded.focusAlarmSound && loaded.alarmSound) {
       settings.focusAlarmSound = loaded.alarmSound;
     }
+    if (loaded && !loaded.breakAlarmSound && loaded.alarmSound) {
+      settings.breakAlarmSound = loaded.alarmSound;
+    }
     if (loaded && loaded.focusAlarmVolume === undefined && loaded.alarmVolume !== undefined) {
       settings.focusAlarmVolume = loaded.alarmVolume;
     }
+    if (loaded && loaded.breakAlarmVolume === undefined && loaded.alarmVolume !== undefined) {
+      settings.breakAlarmVolume = loaded.alarmVolume;
+    }
     if (loaded && loaded.focusAlarmRepeat === undefined && loaded.alarmRepeat !== undefined) {
       settings.focusAlarmRepeat = loaded.alarmRepeat;
+    }
+    if (loaded && loaded.breakAlarmRepeat === undefined && loaded.alarmRepeat !== undefined) {
+      settings.breakAlarmRepeat = loaded.alarmRepeat;
     }
 
     // Save immediately if not yet in dedicated storage to ensure auto-migration is locked in
@@ -100,6 +109,17 @@ export class SettingsService {
    * Save settings to the dedicated persistent storage file, and mirror to plugin data.json.
    */
   public async saveSettings(settings: PomofocusSettings): Promise<void> {
+    // Keep legacy alarmSound/Volume/Repeat mirror in sync
+    if (settings.focusAlarmSound) {
+      settings.alarmSound = settings.focusAlarmSound;
+    }
+    if (settings.focusAlarmVolume !== undefined) {
+      settings.alarmVolume = settings.focusAlarmVolume;
+    }
+    if (settings.focusAlarmRepeat !== undefined) {
+      settings.alarmRepeat = settings.focusAlarmRepeat;
+    }
+
     const targetPath = this.getEffectivePath(settings.customStoragePath);
     const jsonStr = JSON.stringify(settings, null, 2);
 

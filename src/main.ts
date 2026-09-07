@@ -1,4 +1,4 @@
-import { Plugin, ItemView, WorkspaceLeaf, PluginSettingTab, Setting, App } from "obsidian";
+import { Plugin, ItemView, WorkspaceLeaf, PluginSettingTab, Setting, App, Notice } from "obsidian";
 import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS } from "./models/types";
 import { SoundService } from "./services/SoundService";
 import { TimerService } from "./services/TimerService";
@@ -140,6 +140,23 @@ export default class FluentPomofocusPlugin extends Plugin {
       name: "Start / Pause Pomofocus Timer",
       callback: () => {
         this.timerService.toggle();
+      },
+    });
+
+    this.addCommand({
+      id: "reload-settings",
+      name: "Reload Pomofocus Settings from Disk",
+      callback: async () => {
+        await this.loadSettings();
+        this.timerService.updateSettings(this.settings);
+        for (const listener of this.settingsListeners) {
+          try {
+            listener(this.settings, "reload");
+          } catch (e) {
+            console.error("Error in settings listener:", e);
+          }
+        }
+        new Notice("Fluent Pomofocus settings reloaded from disk.");
       },
     });
   }

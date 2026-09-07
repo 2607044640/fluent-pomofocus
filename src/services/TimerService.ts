@@ -54,6 +54,9 @@ export class TimerService {
     for (const listener of this.listeners) {
       listener(state);
     }
+  }
+
+  private emitStateChange(): void {
     if (this.onStateChange) {
       this.onStateChange();
     }
@@ -108,6 +111,7 @@ export class TimerService {
     } else {
       this.notify();
     }
+    this.emitStateChange();
   }
 
   public start(): void {
@@ -156,6 +160,7 @@ export class TimerService {
     this.pause();
     this.initDurationForMode(this.mode);
     this.notify();
+    this.emitStateChange();
   }
 
   public skip(): void {
@@ -186,13 +191,13 @@ export class TimerService {
       const isFocus = completedMode === "pomodoro";
       const soundType = isFocus
         ? (this.settings.focusAlarmSound || this.settings.alarmSound || "wood")
-        : (this.settings.breakAlarmSound || "bell");
+        : (this.settings.breakAlarmSound || this.settings.alarmSound || "bell");
       const volume = isFocus
         ? (this.settings.focusAlarmVolume ?? this.settings.alarmVolume ?? 80)
-        : (this.settings.breakAlarmVolume ?? 80);
+        : (this.settings.breakAlarmVolume ?? this.settings.alarmVolume ?? 80);
       const repeat = isFocus
         ? (this.settings.focusAlarmRepeat ?? this.settings.alarmRepeat ?? 2)
-        : (this.settings.breakAlarmRepeat ?? 2);
+        : (this.settings.breakAlarmRepeat ?? this.settings.alarmRepeat ?? 2);
 
       void this.soundService.playSound(soundType, volume, repeat);
 

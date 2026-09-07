@@ -19,26 +19,87 @@
   let localSettings: PomofocusSettings = JSON.parse(JSON.stringify(settings));
 
   let debounceTimer: number | null = null;
+  let activeMode: string = plugin.timerService ? plugin.timerService.getState().mode : "pomodoro";
+
+  let separateBreakSound: boolean = Boolean(
+    localSettings.breakAlarmSound &&
+    localSettings.focusAlarmSound &&
+    localSettings.breakAlarmSound !== localSettings.focusAlarmSound
+  );
+
+  function onFocusSoundChange() {
+    localSettings.alarmSound = localSettings.focusAlarmSound;
+    if (!separateBreakSound) {
+      localSettings.breakAlarmSound = localSettings.focusAlarmSound;
+    }
+    syncChanges(true);
+    testSound("focus", true);
+  }
+
+  function onFocusVolumeInput() {
+    if (!separateBreakSound) {
+      localSettings.breakAlarmVolume = localSettings.focusAlarmVolume;
+    }
+    syncChanges(false);
+  }
+
+  function onFocusVolumeChange() {
+    localSettings.alarmVolume = localSettings.focusAlarmVolume;
+    if (!separateBreakSound) {
+      localSettings.breakAlarmVolume = localSettings.focusAlarmVolume;
+    }
+    syncChanges(true);
+    testSound("focus", true);
+  }
+
+  function onFocusRepeatInput() {
+    if (!separateBreakSound) {
+      localSettings.breakAlarmRepeat = localSettings.focusAlarmRepeat;
+    }
+    syncChanges(false);
+  }
+
+  function onFocusRepeatChange() {
+    localSettings.alarmRepeat = localSettings.focusAlarmRepeat;
+    if (!separateBreakSound) {
+      localSettings.breakAlarmRepeat = localSettings.focusAlarmRepeat;
+    }
+    syncChanges(true);
+    testSound("focus", true);
+  }
+
+  function toggleSeparateBreakSound() {
+    separateBreakSound = !separateBreakSound;
+    if (!separateBreakSound) {
+      localSettings.breakAlarmSound = localSettings.focusAlarmSound;
+      localSettings.breakAlarmVolume = localSettings.focusAlarmVolume;
+      localSettings.breakAlarmRepeat = localSettings.focusAlarmRepeat;
+      syncChanges(true);
+    }
+  }
 
   function sanitize(s: PomofocusSettings): PomofocusSettings {
     const focusVol = Math.min(100, Math.max(0, Number(s.focusAlarmVolume ?? s.alarmVolume) ?? 80));
     const focusRep = Math.max(1, Math.min(10, Number(s.focusAlarmRepeat ?? s.alarmRepeat) || 1));
-    const breakVol = Math.min(100, Math.max(0, Number(s.breakAlarmVolume ?? s.alarmVolume) ?? 80));
-    const breakRep = Math.max(1, Math.min(10, Number(s.breakAlarmRepeat ?? s.alarmRepeat) || 1));
+    const breakVol = Math.min(100, Math.max(0, Number(s.breakAlarmVolume ?? focusVol) ?? 80));
+    const breakRep = Math.max(1, Math.min(10, Number(s.breakAlarmRepeat ?? focusRep) || 1));
+    const focusSound = s.focusAlarmSound || s.alarmSound || "wood";
+    const breakSound = separateBreakSound ? (s.breakAlarmSound || focusSound) : focusSound;
     return {
       ...s,
       pomoTime: Math.max(1, Number(s.pomoTime) || 1),
       shortBreakTime: Math.max(1, Number(s.shortBreakTime) || 1),
       longBreakTime: Math.max(1, Number(s.longBreakTime) || 1),
       longBreakInterval: Math.max(1, Number(s.longBreakInterval) || 1),
+      alarmSound: focusSound,
       alarmVolume: focusVol,
       alarmRepeat: focusRep,
-      focusAlarmSound: s.focusAlarmSound || s.alarmSound || "wood",
+      focusAlarmSound: focusSound,
       focusAlarmVolume: focusVol,
       focusAlarmRepeat: focusRep,
-      breakAlarmSound: s.breakAlarmSound || "bell",
-      breakAlarmVolume: breakVol,
-      breakAlarmRepeat: breakRep,
+      breakAlarmSound: breakSound,
+      breakAlarmVolume: separateBreakSound ? breakVol : focusVol,
+      breakAlarmRepeat: separateBreakSound ? breakRep : focusRep,
     };
   }
 
@@ -239,17 +300,18 @@
 
         <!-- FOCUS SOUND SET -->
         <div class="pomo-sound-group">
-          <div class="pomo-group-label">Focus Alarm (专注结束)</div>
+          <div class="pomo-group-label">
+            {separateBreakSound ? "Focus Alarm (专注结束)" : "Alarm (提示音)"}
+            {#if activeMode === "pomodoro"}
+              <span class="pomo-active-badge">运行中</span>
+            {/if}
+          </div>
           <div class="pomo-select-row">
             <span>Sound</span>
             <div class="pomo-sound-controls">
               <select
                 bind:value={localSettings.focusAlarmSound}
-                on:change={() => {
-                  localSettings.alarmSound = localSettings.focusAlarmSound;
-                  syncChanges(true);
-                  testSound("focus", true);
-                }}
+                on:change={onFocusSoundChange}
               >
                 <option value="wood">Wood (木块/木鱼)</option>
                 <option value="bell">Bell (清脆钟鸣)</option>
@@ -279,12 +341,8 @@
               min="0"
               max="100"
               bind:value={localSettings.focusAlarmVolume}
-              on:input={() => syncChanges(false)}
-              on:change={() => {
-                localSettings.alarmVolume = localSettings.focusAlarmVolume;
-                syncChanges(true);
-                testSound("focus", true);
-              }}
+              on:input={onFocusVolumeInput}
+              on:change={onFocusVolumeChange}
             />
           </div>
 
@@ -296,81 +354,94 @@
               max="10"
               class="pomo-num-input"
               bind:value={localSettings.focusAlarmRepeat}
-              on:input={() => syncChanges(false)}
-              on:change={() => {
-                localSettings.alarmRepeat = localSettings.focusAlarmRepeat;
-                syncChanges(true);
-                testSound("focus", true);
-              }}
+              on:input={onFocusRepeatInput}
+              on:change={onFocusRepeatChange}
             />
           </div>
         </div>
 
+        <div class="pomo-switch-row" style="margin-top: 8px;">
+          <span>Separate sound for breaks</span>
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            checked={separateBreakSound}
+            on:change={toggleSeparateBreakSound}
+          />
+        </div>
+
         <!-- BREAK SOUND SET -->
-        <div class="pomo-sound-group" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08);">
-          <div class="pomo-group-label">Break Alarm (休息结束)</div>
-          <div class="pomo-select-row">
-            <span>Sound</span>
-            <div class="pomo-sound-controls">
-              <select
-                bind:value={localSettings.breakAlarmSound}
+        {#if separateBreakSound}
+          <div class="pomo-sound-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08);">
+            <div class="pomo-group-label">
+              Break Alarm (休息结束)
+              {#if activeMode !== "pomodoro"}
+                <span class="pomo-active-badge">运行中</span>
+              {/if}
+            </div>
+            <div class="pomo-select-row">
+              <span>Sound</span>
+              <div class="pomo-sound-controls">
+                <select
+                  bind:value={localSettings.breakAlarmSound}
+                  on:change={() => {
+                    syncChanges(true);
+                    testSound("break", true);
+                  }}
+                >
+                  <option value="wood">Wood (木块/木鱼)</option>
+                  <option value="bell">Bell (清脆钟鸣)</option>
+                  <option value="bird">Bird (自然鸟鸣)</option>
+                  <option value="digital">Digital (电子闹铃)</option>
+                  <option value="kitchen">Kitchen (机械闹钟)</option>
+                  <option value="gong">Gong (禅意铜锣/颂钵)</option>
+                  <option value="chime">Chime (和弦风铃)</option>
+                  <option value="musicbox">Music Box (纯净八音盒)</option>
+                  <option value="glass">Glass (水晶敲击)</option>
+                  <option value="drop">Water Drop (清泉水滴)</option>
+                  <option value="reception">Reception (前台叮铃)</option>
+                  <option value="dingdong">Ding Dong (门铃和弦)</option>
+                  <option value="positive">Positive (愉悦提示)</option>
+                  <option value="none">None (静音)</option>
+                </select>
+                <button class="pomo-test-sound-btn" on:click={() => testSound("break", false)} title="Test Break Sound">
+                  <Volume2 size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div class="pomo-slider-row">
+              <span class="pomo-slider-val">{localSettings.breakAlarmVolume}%</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                bind:value={localSettings.breakAlarmVolume}
+                on:input={() => syncChanges(false)}
                 on:change={() => {
                   syncChanges(true);
                   testSound("break", true);
                 }}
-              >
-                <option value="wood">Wood (木块/木鱼)</option>
-                <option value="bell">Bell (清脆钟鸣)</option>
-                <option value="bird">Bird (自然鸟鸣)</option>
-                <option value="digital">Digital (电子闹铃)</option>
-                <option value="kitchen">Kitchen (机械闹钟)</option>
-                <option value="gong">Gong (禅意铜锣/颂钵)</option>
-                <option value="chime">Chime (和弦风铃)</option>
-                <option value="musicbox">Music Box (纯净八音盒)</option>
-                <option value="glass">Glass (水晶敲击)</option>
-                <option value="drop">Water Drop (清泉水滴)</option>
-                <option value="reception">Reception (前台叮铃)</option>
-                <option value="dingdong">Ding Dong (门铃和弦)</option>
-                <option value="positive">Positive (愉悦提示)</option>
-                <option value="none">None (静音)</option>
-              </select>
-              <button class="pomo-test-sound-btn" on:click={() => testSound("break", false)} title="Test Break Sound">
-                <Volume2 size={16} />
-              </button>
+              />
+            </div>
+
+            <div class="pomo-input-row">
+              <span>repeat</span>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                class="pomo-num-input"
+                bind:value={localSettings.breakAlarmRepeat}
+                on:input={() => syncChanges(false)}
+                on:change={() => {
+                  syncChanges(true);
+                  testSound("break", true);
+                }}
+              />
             </div>
           </div>
-
-          <div class="pomo-slider-row">
-            <span class="pomo-slider-val">{localSettings.breakAlarmVolume}%</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              bind:value={localSettings.breakAlarmVolume}
-              on:input={() => syncChanges(false)}
-              on:change={() => {
-                syncChanges(true);
-                testSound("break", true);
-              }}
-            />
-          </div>
-
-          <div class="pomo-input-row">
-            <span>repeat</span>
-            <input
-              type="number"
-              min="1"
-              max="10"
-              class="pomo-num-input"
-              bind:value={localSettings.breakAlarmRepeat}
-              on:input={() => syncChanges(false)}
-              on:change={() => {
-                syncChanges(true);
-                testSound("break", true);
-              }}
-            />
-          </div>
-        </div>
+        {/if}
       </div>
 
       <div class="pomo-divider"></div>
@@ -795,5 +866,16 @@
   }
   .pomo-toggle:checked::after {
     transform: translateX(16px);
+  }
+
+  .pomo-active-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--interactive-accent, #64B5F6);
+    margin-left: 6px;
+    font-weight: 500;
   }
 </style>
