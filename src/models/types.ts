@@ -2,7 +2,21 @@ export const VIEW_TYPE_POMOFOCUS = "fluent-pomofocus-view";
 
 export type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 
-export type SoundType = "wood" | "bell" | "digital" | "bird" | "kitchen" | "none";
+export type SoundType =
+  | "wood"
+  | "bell"
+  | "digital"
+  | "bird"
+  | "kitchen"
+  | "gong"
+  | "chime"
+  | "musicbox"
+  | "glass"
+  | "drop"
+  | "reception"
+  | "dingdong"
+  | "positive"
+  | "none";
 
 export interface TaskItem {
   id: string;

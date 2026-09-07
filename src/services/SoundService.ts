@@ -33,6 +33,46 @@ export const SOUND_METAS: Record<Exclude<SoundType, "none">, SoundMeta> = {
     filename: "alarm-kitchen.mp3",
     url: "https://pomofocus.io/audios/alarms/alarm-kitchen.mp3",
   },
+  gong: {
+    name: "Gong (禅意铜锣/颂钵)",
+    filename: "alarm-gong.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/8bce59b5.mp3",
+  },
+  chime: {
+    name: "Chime (和弦风铃)",
+    filename: "alarm-chime.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/28d6b5be.mp3",
+  },
+  musicbox: {
+    name: "Music Box (纯净八音盒)",
+    filename: "alarm-musicbox.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/ebe7deb8.mp3",
+  },
+  glass: {
+    name: "Glass (水晶敲击)",
+    filename: "alarm-glass.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/2ed9509e.mp3",
+  },
+  drop: {
+    name: "Water Drop (清泉水滴)",
+    filename: "alarm-pindrop.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/2e13802a.mp3",
+  },
+  reception: {
+    name: "Reception Bell (前台叮铃)",
+    filename: "alarm-reception.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/54b867f9.mp3",
+  },
+  dingdong: {
+    name: "Ding Dong (门铃和弦)",
+    filename: "alarm-dingdong.mp3",
+    url: "https://raw.githubusercontent.com/schmich/marinara/master/package/audio/92ff2a8a.mp3",
+  },
+  positive: {
+    name: "Positive (愉悦提示)",
+    filename: "alarm-positive.mp3",
+    url: "https://raw.githubusercontent.com/super-productivity/super-productivity/master/src/assets/snd/positive.mp3",
+  },
 };
 
 export class SoundService {
@@ -70,7 +110,7 @@ export class SoundService {
    * Preload all sound assets in the background
    */
   public async preloadAll(): Promise<void> {
-    const types: SoundType[] = ["wood", "bell", "bird", "digital", "kitchen"];
+    const types = Object.keys(SOUND_METAS) as SoundType[];
     for (const type of types) {
       void this.loadSound(type);
     }
@@ -337,6 +377,22 @@ export class SoundService {
         return this.synthBird(ctx, volume);
       case "kitchen":
         return this.synthKitchen(ctx, volume);
+      case "gong":
+        return this.synthGong(ctx, volume);
+      case "chime":
+        return this.synthChime(ctx, volume);
+      case "musicbox":
+        return this.synthMusicBox(ctx, volume);
+      case "glass":
+        return this.synthGlass(ctx, volume);
+      case "drop":
+        return this.synthDrop(ctx, volume);
+      case "reception":
+        return this.synthReception(ctx, volume);
+      case "dingdong":
+        return this.synthDingDong(ctx, volume);
+      case "positive":
+        return this.synthPositive(ctx, volume);
       default:
         return 0.1;
     }
@@ -486,5 +542,204 @@ export class SoundService {
       osc.stop(startTime + 0.07);
     }
     return 0.36;
+  }
+
+  private synthGong(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const freqs = [220, 330, 440, 587];
+    for (let i = 0; i < freqs.length; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = i === 0 ? "sine" : "triangle";
+      osc.frequency.setValueAtTime(freqs[i], startTime);
+
+      const amp = volume * (0.8 / (i + 1));
+      gain.gain.setValueAtTime(amp, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      this.activeOscillators.push(osc);
+      this.activeGainNodes.push(gain);
+
+      osc.start(startTime);
+      osc.stop(startTime + 1.25);
+    }
+    return 1.25;
+  }
+
+  private synthChime(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const notes = [1046.5, 1318.5, 1567.98]; // C6, E6, G6
+    notes.forEach((freq, idx) => {
+      const noteStart = startTime + idx * 0.08;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, noteStart);
+
+      gain.gain.setValueAtTime(volume * 0.9, noteStart);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.6);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      this.activeOscillators.push(osc);
+      this.activeGainNodes.push(gain);
+
+      osc.start(noteStart);
+      osc.stop(noteStart + 0.65);
+    });
+    return 0.85;
+  }
+
+  private synthMusicBox(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    notes.forEach((freq, idx) => {
+      const noteStart = startTime + idx * 0.1;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, noteStart);
+
+      gain.gain.setValueAtTime(volume * 0.85, noteStart);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.5);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      this.activeOscillators.push(osc);
+      this.activeGainNodes.push(gain);
+
+      osc.start(noteStart);
+      osc.stop(noteStart + 0.55);
+    });
+    return 0.9;
+  }
+
+  private synthGlass(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(2093, startTime); // C7
+
+    gain.gain.setValueAtTime(volume * 1.3, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.6);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    this.activeOscillators.push(osc);
+    this.activeGainNodes.push(gain);
+
+    osc.start(startTime);
+    osc.stop(startTime + 0.62);
+    return 0.65;
+  }
+
+  private synthDrop(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(1400, startTime);
+    osc.frequency.exponentialRampToValueAtTime(2400, startTime + 0.08);
+
+    gain.gain.setValueAtTime(volume * 1.4, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    this.activeOscillators.push(osc);
+    this.activeGainNodes.push(gain);
+
+    osc.start(startTime);
+    osc.stop(startTime + 0.13);
+    return 0.18;
+  }
+
+  private synthReception(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(2000, startTime);
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(4000, startTime);
+
+    gain.gain.setValueAtTime(volume * 1.3, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.8);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    this.activeOscillators.push(osc1, osc2);
+    this.activeGainNodes.push(gain);
+
+    osc1.start(startTime);
+    osc1.stop(startTime + 0.82);
+    osc2.start(startTime);
+    osc2.stop(startTime + 0.82);
+    return 0.85;
+  }
+
+  private synthDingDong(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(1046.5, startTime);
+    gain1.gain.setValueAtTime(volume * 1.1, startTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    this.activeOscillators.push(osc1);
+    this.activeGainNodes.push(gain1);
+    osc1.start(startTime);
+    osc1.stop(startTime + 0.48);
+
+    const dongStart = startTime + 0.28;
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(783.99, dongStart);
+    gain2.gain.setValueAtTime(volume * 1.1, dongStart);
+    gain2.gain.exponentialRampToValueAtTime(0.001, dongStart + 0.6);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    this.activeOscillators.push(osc2);
+    this.activeGainNodes.push(gain2);
+    osc2.start(dongStart);
+    osc2.stop(dongStart + 0.62);
+
+    return 0.95;
+  }
+
+  private synthPositive(ctx: AudioContext, volume: number): number {
+    const startTime = ctx.currentTime;
+    const notes = [880, 1108.73];
+    notes.forEach((freq, idx) => {
+      const noteStart = startTime + idx * 0.12;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, noteStart);
+      gain.gain.setValueAtTime(volume * 1.2, noteStart);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      this.activeOscillators.push(osc);
+      this.activeGainNodes.push(gain);
+      osc.start(noteStart);
+      osc.stop(noteStart + 0.38);
+    });
+    return 0.55;
   }
 }

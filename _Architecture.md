@@ -114,9 +114,12 @@ Obsidian loads ONLY `styles.css` from the plugin directory. `esbuild.config.mjs`
 4. **Clean Hit-Testing**: The modal explicitly avoids Chromium `backdrop-filter` rendering bugs by using clean RGBA backdrop layering and isolated pointer events.
 
 ### Invariant 4: Dual-Engine High-Fidelity Audio & Loudness Architecture
-1. **Official High-Definition Samples**: Downloads and caches real acoustic audio for Wood (木鱼), Bell (清脆钟鸣), Bird (自然鸟鸣), Digital (电子闹铃), and Kitchen (机械闹钟) into vault storage (`.obsidian/plugins/fluent-pomofocus/sounds/`) for zero-latency offline playback.
+1. **Expanded High-Definition Acoustic Library**: Downloads and caches 13 real acoustic audio profiles into vault storage (`.obsidian/plugins/fluent-pomofocus/sounds/`) for zero-latency offline playback:
+   - *Classic & Kitchen*: Wood (木块/木鱼), Bell (清脆钟鸣), Digital (电子闹铃), Kitchen (机械闹钟), Reception Bell (前台叮铃)
+   - *Mindfulness & Ambient*: Gong (禅意铜锣/颂钵), Bird (自然鸟鸣), Water Drop (清泉水滴), Chime (和弦风铃)
+   - *Musical & Uplifting*: Music Box (纯净八音盒), Glass (水晶敲击), Ding Dong (门铃和弦), Positive (愉悦提示)
 2. **200% Gain Amplification & Dynamics Limiting**: Routes sound through `AudioContext` with `GainNode` scaling up to 2.0x and `DynamicsCompressorNode` (-12dB threshold, 10:1 ratio, 3ms attack) to ensure alerts are loud and crisp across low-power laptop speakers without clipping or distortion.
-3. **Multi-Harmonic Synthesized Fallback**: If offline or before initial download finishes, instant synthesized multi-harmonic oscillators ensure notifications are never missed.
+3. **Complete Multi-Harmonic Synthesizer Suite**: If offline or before initial download finishes, every single one of the 13 sound profiles features a dedicated procedural Web Audio API synthesizer in `dispatchSynthOneShot`, guaranteeing alerts always sound authentic even in air-gapped environments.
 4. **Interactive Volume Control & Sequential Repeat Engine**: Setting modal provides 0-100% slider and repeat counter (1-10) with live preview on slider release, dropdown change, and number input. Playback employs an interruptible `onended` sequential repeat loop with a 100ms natural acoustic cadence, while `stopSound()` guarantees instant cutoff without overlapping when re-triggered or closed.
 
 ### Invariant 5: Native Obsidian Theme Harmony & Fluid Typography

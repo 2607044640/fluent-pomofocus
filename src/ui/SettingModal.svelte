@@ -256,6 +256,14 @@
                 <option value="bird">Bird (自然鸟鸣)</option>
                 <option value="digital">Digital (电子闹铃)</option>
                 <option value="kitchen">Kitchen (机械闹钟)</option>
+                <option value="gong">Gong (禅意铜锣/颂钵)</option>
+                <option value="chime">Chime (和弦风铃)</option>
+                <option value="musicbox">Music Box (纯净八音盒)</option>
+                <option value="glass">Glass (水晶敲击)</option>
+                <option value="drop">Water Drop (清泉水滴)</option>
+                <option value="reception">Reception (前台叮铃)</option>
+                <option value="dingdong">Ding Dong (门铃和弦)</option>
+                <option value="positive">Positive (愉悦提示)</option>
                 <option value="none">None (静音)</option>
               </select>
               <button class="pomo-test-sound-btn" on:click={() => testSound("focus", false)} title="Test Focus Sound">
@@ -316,6 +324,14 @@
                 <option value="bird">Bird (自然鸟鸣)</option>
                 <option value="digital">Digital (电子闹铃)</option>
                 <option value="kitchen">Kitchen (机械闹钟)</option>
+                <option value="gong">Gong (禅意铜锣/颂钵)</option>
+                <option value="chime">Chime (和弦风铃)</option>
+                <option value="musicbox">Music Box (纯净八音盒)</option>
+                <option value="glass">Glass (水晶敲击)</option>
+                <option value="drop">Water Drop (清泉水滴)</option>
+                <option value="reception">Reception (前台叮铃)</option>
+                <option value="dingdong">Ding Dong (门铃和弦)</option>
+                <option value="positive">Positive (愉悦提示)</option>
                 <option value="none">None (静音)</option>
               </select>
               <button class="pomo-test-sound-btn" on:click={() => testSound("break", false)} title="Test Break Sound">

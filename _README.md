@@ -45,10 +45,14 @@ For underlying architecture specifications, state management, API signatures, an
   - `Long Break`: Extended recovery after a cycle of intervals (default 20 mins every 3 rounds).
 
 ### 🔔 Real Sound Library, Dual Sound Sets & Notifications
-- **Dual Sound Profiles (Focus vs. Break)**: Separate sound settings for Focus sessions vs. Break periods. Customize distinct alarm sounds (e.g. Wood for Focus completion, Bell for Break completion), volume levels, and repeat counts for each state.
-- **Real Audio Effects & Caching**: Supports 5 official high-fidelity Pomofocus sound profiles: `Wood` (木鱼敲击), `Bell` (清脆钟鸣), `Bird` (自然鸟鸣), `Digital` (电子闹铃), and `Kitchen` (机械闹钟). Audio files are automatically downloaded from CDN and cached in vault storage for instant zero-latency playback.
+- **Dual Sound Profiles (Focus vs. Break)**: Separate sound settings for Focus sessions vs. Break periods. Customize distinct alarm sounds (e.g. Gong for Focus completion, Chime for Break completion), volume levels, and repeat counts for each state.
+- **Rich 13-Acoustic Sound Library & Caching**: Offers 13 high-fidelity sound profiles:
+  - *Classic & Kitchen*: `Wood` (木块/木鱼), `Bell` (清脆钟鸣), `Digital` (电子闹铃), `Kitchen` (机械闹钟), `Reception Bell` (前台叮铃)
+  - *Mindfulness & Ambient*: `Gong` (禅意铜锣/颂钵), `Bird` (自然鸟鸣), `Water Drop` (清泉水滴), `Chime` (和弦风铃)
+  - *Musical & Uplifting*: `Music Box` (纯净八音盒), `Glass` (水晶敲击), `Ding Dong` (门铃和弦), `Positive` (愉悦提示)
+  Audio files are automatically cached in vault storage for zero-latency instant offline playback.
 - **200% Loudness Amplification**: Integrated with Web Audio API `GainNode` scaling up to 2.0x alongside a `DynamicsCompressorNode`, ensuring alarm alerts are loud, crisp, and clearly audible even through quiet laptop speakers without distortion or clipping.
-- **Synthesizer Fallback**: Built-in multi-harmonic synthesized sound generator ensures alerts trigger instantly even in completely offline environments.
+- **Full Synthesizer Fallback Suite**: Every single one of the 13 sound profiles includes an internal procedural Web Audio API synthesizer, ensuring alerts trigger cleanly even when offline or before files finish downloading.
 - **Dual Notification & Click-to-Focus**: Dispatches concise desktop notifications (`Rest!` when focus period completes, `Focus!` when break period ends). Clicking the Windows desktop toast or in-app notice automatically brings Obsidian to the foreground and opens the floating modal UI.
 
 ### 📋 Integrated Task Management & Total Removal Option
