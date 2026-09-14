@@ -6,9 +6,9 @@ Obsidian lifecycle, view registration, commands, and settings broadcast. Source:
 
 | Component | Responsible For | MUST NOT Contain |
 |---|---|---|
-| `FluentPomofocusPlugin` | `onload` / `onunload`, service construction, commands, ribbon, view/modal/popout hosts, settings listener fan-out | Timer tick math, Web Audio playback, vault JSON I/O details |
-| `PomofocusViewWrapper` | `ItemView` leaf for `VIEW_TYPE_POMOFOCUS`; mounts/destroys `PomofocusView` | Settings schema, sound loading |
-| `PomofocusSettingTab` | Obsidian Settings pane: `enableTasks`, `focusAlarmSound`, `breakAlarmSound`, `customStoragePath` | Full in-app Setting modal UI |
+| `FluentPomofocusPlugin` | `onload` / `onunload`, service construction, commands, ribbon, view/modal/popout hosts, `settingsListeners` fan-out | Timer tick math, Web Audio playback, vault JSON I/O details |
+| `PomofocusViewWrapper` | `ItemView` for `VIEW_TYPE_POMOFOCUS` (`getDisplayText` `"Pomofocus"`, icon `"timer"`); mounts/destroys `PomofocusView` | Settings schema, sound loading |
+| `PomofocusSettingTab` | Obsidian Settings pane: `enableTasks`, `focusAlarmSound`, `breakAlarmSound`, `customStoragePath` | Full in-app `SettingModal` UI |
 
 ## Key Invariants
 
@@ -21,10 +21,10 @@ Obsidian lifecycle, view registration, commands, and settings broadcast. Source:
 1. Obsidian loads `main.js` → `FluentPomofocusPlugin.onload()`.
 2. `new SettingsService(app, this)` → `addSettingTab(PomofocusSettingTab)` → `await loadSettings()`.
 3. `new SoundService(app, manifest)` → `preloadAll()`; `new TimerService(settings, soundService)`.
-4. Wire `onStateChange` (persist `currentMode`/`pomodoroRound`) and `onNotificationClick` (`openFloatingModal`).
+4. Wire `onStateChange` (persist `currentMode` / `pomodoroRound` via `saveSettings`) and `onNotificationClick` (`openFloatingModal`).
 5. `registerView("fluent-pomofocus-view", leaf => new PomofocusViewWrapper(leaf, this))`.
 6. Ribbon `timer` and commands route to `activateView` / `openPopoutWindow` / `openFloatingModal` / `timerService.toggle` / `loadSettings`.
-7. `PomofocusViewWrapper.onOpen` mounts `PomofocusView` with `plugin`, `settings`, `timerService`, `soundService`, `onSaveSettings`, `onOpenSmallWindow`.
+7. `PomofocusViewWrapper.onOpen` mounts `PomofocusView` with `app`, `plugin`, `settings`, `timerService`, `soundService`, `onSaveSettings`, `onOpenSmallWindow`.
 8. `onunload` → `timerService.destroy()`.
 
 ## Side-effects API
@@ -32,16 +32,18 @@ Obsidian lifecycle, view registration, commands, and settings broadcast. Source:
 | Method | Signature | Side-Effects |
 |---|---|---|
 | `onSettingsChange` | `(listener: (settings: PomofocusSettings, source?: string) => void) => () => void` | Adds/removes listener in `settingsListeners` |
-| `updateAndBroadcastSettings` | `(newSettings: Partial<PomofocusSettings>, source?: string) => Promise<void>` | Mutates `this.settings`, `saveSettings()`, `timerService.updateSettings`, invokes listeners |
+| `updateAndBroadcastSettings` | `(newSettings: Partial<PomofocusSettings>, source?: string) => Promise<void>` | `Object.assign(this.settings, newSettings)`, `saveSettings()`, `timerService.updateSettings`, invokes listeners |
 | `loadSettings` | `() => Promise<void>` | Replaces `this.settings` from `SettingsService.loadSettings` |
 | `saveSettings` | `() => Promise<void>` | `SettingsService.saveSettings(this.settings)` |
 | `activateView` | `() => Promise<void>` | Reveals existing leaf or `getRightLeaf` + `setViewState` |
 | `openPopoutWindow` | `() => Promise<void>` | `workspace.openPopoutLeaf({ size: { width: 480, height: 720 } })` or falls back to `activateView` |
-| `openFloatingModal` | `() => void` | Constructs `PomofocusModal` and `open()` |
+| `openFloatingModal` | `() => void` | Constructs `PomofocusModal` and `open()` unless singleton still in `document.body` |
 | `onModalClose` | `() => void` | Clears `activeModal` |
-| `PomofocusViewWrapper.onOpen` | `() => Promise<void>` | Instantiates Svelte `PomofocusView` into leaf content |
+| `PomofocusViewWrapper.onOpen` | `() => Promise<void>` | Instantiates Svelte `PomofocusView` into `containerEl.children[1]` |
 | `PomofocusViewWrapper.onClose` | `() => Promise<void>` | `$destroy()` on Svelte component |
-| `PomofocusSettingTab.display` | `() => void` | Builds Obsidian `Setting` toggles/dropdowns/text; writes via `updateAndBroadcastSettings(..., "setting-tab")` |
+| `PomofocusSettingTab.display` | `() => void` | Builds Obsidian `Setting` controls; writes via `updateAndBroadcastSettings(..., "setting-tab")`. Focus dropdown also sets `alarmSound` |
+
+Command ids: `open-sidebar`, `open-small-window`, `open-floating-modal`, `toggle-timer`, `reload-settings`. Reload does **not** call `updateAndBroadcastSettings`; it `loadSettings()`, `timerService.updateSettings`, fans out `source === "reload"`, then `new Notice("Fluent Pomofocus settings reloaded from disk.")`.
 
 ## Recipes
 

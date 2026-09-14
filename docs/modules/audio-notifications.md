@@ -8,7 +8,7 @@ Alarm playback (cached MP3 or oscillator fallback) and dual-channel notices. Sou
 |---|---|---|
 | `SOUND_METAS` | Filename + remote URL for each `SoundType` except `"none"` | Timer mode logic |
 | `SoundService` | `AudioContext`, buffer cache, vault `sounds/` cache, sequential repeats, synth fallback, `stopSound` | Settings persistence, `Notice` / `Notification` UI |
-| `NotificationService` | Permission request, Obsidian `Notice` (6 s), native `Notification`, Electron window focus | Audio graph |
+| `NotificationService` | Static permission request, Obsidian `Notice` (6 s), native `Notification`, Electron window focus | Audio graph |
 
 ## Key Invariants
 
@@ -21,11 +21,13 @@ Alarm playback (cached MP3 or oscillator fallback) and dual-channel notices. Sou
 1. `onload` constructs `SoundService(app, manifest)` and `void preloadAll()` (fires `loadSound` for every key in `SOUND_METAS`).
 2. Period complete or Setting modal test → `playSound(type, volumePercent, repeat)`.
 3. `"none"` or `volumePercent <= 0` → `stopSound()` and return.
-4. Clamp volume to `[0, 1]`, repeat to `[1, 10]`; load buffer if missing.
-5. Buffer path: `playAudioBuffer` — gain `volume * 2.0` through `DynamicsCompressorNode`; 100 ms gap between repeats.
-6. Miss path: `playSynthesized` → `dispatchSynthOneShot` (`synthWood` … `synthPositive`).
+4. Clamp volume to `[0, 1]`, repeat to `[1, 10]`; load buffer if missing. If `loadSound` is already in-flight for that type (`isDownloading`), the second call returns `null`.
+5. Buffer path: `playAudioBuffer` — gain `volume * 2.0` through `DynamicsCompressorNode` (threshold -12, knee 24, ratio 10); 100 ms gap between repeats.
+6. Miss path: `playSynthesized` → `dispatchSynthOneShot` (`synthWood`, `synthBell`, `synthDigital`, `synthBird`, `synthKitchen`, `synthGong`, `synthChime`, `synthMusicBox`, `synthGlass`, `synthDrop`, `synthReception`, `synthDingDong`, `synthPositive`).
 7. Parallel: `NotificationService.notify(title, message?, onClick?)` creates `Notice` (clickable if `onClick`) and, if `Notification.permission === "granted"`, a silent system notification.
 8. Click → `focusObsidianWindow()` (`window.focus` + optional Electron `remote.getCurrentWindow` restore/show/focus) then `onClick` (plugin opens floating modal).
+
+`SOUND_METAS` hosts: `wood`/`bell`/`bird`/`digital`/`kitchen` → `pomofocus.io/audios/alarms/`; `gong`/`chime`/`musicbox`/`glass`/`drop`/`reception`/`dingdong` → Marinara GitHub raw; `positive` → super-productivity GitHub. `"none"` is not in the map. `pluginDir` fallback: `.obsidian/plugins/fluent-pomofocus`.
 
 ## Side-effects API
 
@@ -36,9 +38,9 @@ Alarm playback (cached MP3 or oscillator fallback) and dual-channel notices. Sou
 | `SoundService.stopSound` | `() => void` | Increments `currentPlayId`; stops nodes; clears timeout |
 | `SoundService.loadSound` | `(type: SoundType) => Promise<AudioBuffer \| null>` | May `mkdir`/`writeBinary` under plugin `sounds/`; `fetch` remote URL; `decodeAudioData` |
 | `SoundService.playSound` | `(type: SoundType, volumePercent: number, repeat: number) => Promise<void>` | Stops prior audio; starts buffer or synth repeats |
-| `NotificationService.requestPermissionIfNeeded` | `() => void` | `Notification.requestPermission()` if `"default"` |
-| `NotificationService.focusObsidianWindow` | `() => void` | `window.focus`; Electron restore/show/focus |
-| `NotificationService.notify` | `(title: string, message?: string, onClick?: () => void) => void` | `new Notice(..., 6000)`; optional native `Notification` |
+| `NotificationService.requestPermissionIfNeeded` | `() => void` (static) | `Notification.requestPermission()` if `"default"` |
+| `NotificationService.focusObsidianWindow` | `() => void` (static) | `window.focus`; Electron restore/show/focus |
+| `NotificationService.notify` | `(title: string, message?: string, onClick?: () => void) => void` (static) | `new Notice(..., 6000)`; optional native `Notification` |
 
 ## Recipes
 

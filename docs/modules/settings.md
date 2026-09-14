@@ -16,6 +16,8 @@ Schema, defaults, vault-file I/O, and dual-alarm migration. Sources: `src/models
 2. Load merges `Object.assign({}, DEFAULT_SETTINGS, loaded)` then copies legacy `alarmSound`/`alarmVolume`/`alarmRepeat` into empty focus/break fields (Why chosen over failing closed: v1 single-alarm payloads must keep working).
 3. Save mirrors `focusAlarm*` back onto `alarmSound`/`alarmVolume`/`alarmRepeat`, writes the target path, writes the default path if custom, and `plugin.saveData` (Why chosen over a single write: reload and older code paths still find a copy).
 
+`data.json` in the plugin folder is a runtime mirror/snapshot, not `DEFAULT_SETTINGS`.
+
 ## Numbered Data Flow
 
 1. `getEffectivePath(customPath?)`: trimmed custom path, else `${configDir}/fluent-pomofocus.json`.
@@ -35,7 +37,7 @@ Schema, defaults, vault-file I/O, and dual-alarm migration. Sources: `src/models
 | `loadSettings` | `() => Promise<PomofocusSettings>` | `adapter.exists`/`read`, optional `plugin.loadData`, may `saveSettings` to migrate |
 | `saveSettings` | `(settings: PomofocusSettings) => Promise<void>` | Mutates legacy alarm fields on `settings`; `mkdir`/`write`; `plugin.saveData` |
 
-### Defaults (`DEFAULT_SETTINGS`)
+### Defaults (`DEFAULT_SETTINGS` in `src/models/types.ts`)
 
 | Field | Default |
 |---|---|
@@ -43,12 +45,17 @@ Schema, defaults, vault-file I/O, and dual-alarm migration. Sources: `src/models
 | `longBreakInterval` | `3` |
 | `autoStartBreaks` / `autoStartPomodoros` | `true` |
 | `enableTasks` / `autoCheckTasks` / `checkToBottom` | `true` / `false` / `true` |
+| `alarmSound` / `alarmVolume` / `alarmRepeat` | `"wood"` / `80` / `2` (legacy mirrors) |
+| `focusSound` | `"none"` (persisted; unused by current UI) |
 | `focusAlarmSound` / `breakAlarmSound` | `"wood"` / `"bell"` |
 | `focusAlarmVolume` / `breakAlarmVolume` | `80` |
 | `focusAlarmRepeat` / `breakAlarmRepeat` | `2` |
-| `colorTheme` / `hourFormat` | `"obsidian"` / `"24"` |
+| `colorTheme` / `hourFormat` / `darkModeWhenRunning` | `"obsidian"` / `"24"` / `false` (`hourFormat` persisted; unused by current UI) |
+| `customStoragePath` | `""` |
 | `currentMode` / `pomodoroRound` | `"pomodoro"` / `1` |
 | `tasks` / `activeTaskId` | `[]` / `null` |
+
+`TaskItem`: `id`, `title`, `completed`, `actPomodoros`, `estPomodoros`, `note?`, `createdAt`.
 
 ## Recipes
 

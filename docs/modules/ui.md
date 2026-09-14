@@ -8,7 +8,7 @@ Timer chrome, task list, in-app settings overlay, and floating modal host. Sourc
 |---|---|---|
 | `PomofocusView` | Mode tabs, countdown, START/PAUSE/skip, tasks CRUD, theme background, settings overlay mount | Vault adapter I/O, `AudioContext` |
 | `SettingModal` | Local draft of `PomofocusSettings`, debounce sync, sound test, theme swatches | `TimerService` interval control (except reading `getState().mode` for badges) |
-| `PomofocusModal` | Obsidian `Modal` wrapper, keyboard (Esc / Space / Ctrl+Tab), `no-tasks` class | Sound decoding |
+| `PomofocusModal` | Obsidian `Modal` wrapper, keyboard (Esc / Space / Ctrl+Tab), `no-tasks` class | Sound decoding; does **not** call `PomofocusView.cycleMode` (has its own private `cycleMode`) |
 
 ## Key Invariants
 
@@ -18,14 +18,16 @@ Timer chrome, task list, in-app settings overlay, and floating modal host. Sourc
 
 ## Numbered Data Flow
 
-1. Host (`PomofocusViewWrapper.onOpen` or `PomofocusModal.onOpen`) constructs `PomofocusView` with `plugin`, `settings`, `timerService`, `soundService`, `onSaveSettings`, `onOpenSmallWindow`, optional `isModal`/`onClose`.
+1. Host (`PomofocusViewWrapper.onOpen` or `PomofocusModal.onOpen`) constructs `PomofocusView` with `app`, `plugin`, `settings`, `timerService`, `soundService`, `onSaveSettings`, `onOpenSmallWindow`, optional `isModal`/`onClose`.
 2. `onMount`: `timerService.subscribe` → `timerState`; `plugin.onSettingsChange` copies settings; assign `onPomodoroComplete`.
-3. User START/PAUSE → `timerService.toggle()`; skip → `timerService.skip()`; tab → `switchMode(mode, false)` + save.
+3. User START/PAUSE → `timerService.toggle()`; skip → `timerService.skip()` (skip button shown when `isRunning` or `remainingSeconds < totalSeconds`); tab → `switchMode(mode, false)` + save.
 4. Task add/complete/delete/clear → mutate `settings.tasks` / `activeTaskId` → `onSaveSettings()`.
 5. Setting button → `showSettingModal = true` → `SettingModal` with `createEventDispatcher` `close` / `save`.
 6. Modal inputs `syncChanges(immediate)` (200 ms debounce unless immediate) → `sanitize` (min durations 1, volume 0–100, repeat 1–10) → `updateAndBroadcastSettings`.
 7. OK or backdrop/Esc: `soundService.stopSound()`, final sync, `dispatch("close")`.
-8. Floating modal keys (capture phase): Esc closes; Ctrl/Meta+Tab cycles modes unless settings overlay open; Space toggles if focus is not `input`/`textarea`.
+8. Floating modal keys (capture phase on `window`): Esc closes; Ctrl/Meta+Tab cycles modes unless `.pomo-modal-backdrop` is present; Space toggles if focus is not `input`/`textarea`. `PomofocusModal.cycleMode` writes `plugin.settings.currentMode`, `timerService.switchMode(next, false)`, `saveSettings()`.
+
+Leaf CSS (`src/styles.css`): `[data-type="fluent-pomofocus-view"]` padding 0. Modal class `fluent-pomofocus-modal`: 85vw/85vh, max 680×820; `.no-tasks` 640px / min-height 400 (golden widescreen); native `.modal-close-button` hidden.
 
 ## Side-effects API
 
@@ -33,16 +35,17 @@ Timer chrome, task list, in-app settings overlay, and floating modal host. Sourc
 |---|---|---|
 | `PomofocusView.handleModeChange` | `(mode: TimerMode) => void` | Writes `settings.currentMode`, `switchMode`, `onSaveSettings` |
 | `PomofocusView.toggleTimer` / `skipTimer` | `() => void` | `timerService.toggle` / `skip` |
-| `PomofocusView.addTask` | `() => void` | Appends `TaskItem` (`id: "task_" + Date.now() + …`), may set `activeTaskId` |
+| `PomofocusView.addTask` | `() => void` | Appends `TaskItem` (`id: "task_" + Date.now() + "_" + rand`), may set `activeTaskId` |
 | `PomofocusView.toggleTaskComplete` | `(task: TaskItem) => void` | Flips `completed`; optional `reorderTasks` |
 | `PomofocusView.deleteTask` / `clearFinishedTasks` / `clearAllTasks` | `(id?: string) => void` | Mutates task list; repairs `activeTaskId` |
-| `PomofocusView.cycleMode` | `(direction: 1 \| -1) => void` | Cycles `pomodoro → shortBreak → longBreak` |
+| `PomofocusView.cycleMode` | `(direction: 1 \| -1) => void` (exported) | Cycles `pomodoro → shortBreak → longBreak` via `handleModeChange` |
 | `PomofocusView.handleSaveModal` | `(e: CustomEvent<PomofocusSettings>) => Promise<void>` | `plugin.updateAndBroadcastSettings(e.detail, "modal")` |
 | `SettingModal.syncChanges` | `(immediate?: boolean) => void` | Debounced or immediate broadcast of `sanitize(localSettings)` |
 | `SettingModal.testSound` | `(target: "focus" \| "break", forcePlay?: boolean) => void` | Toggle-stop or `playSound` |
 | `SettingModal.handleSave` / `handleClose` | `() => void` | `stopSound`, sync, dispatch |
-| `PomofocusModal.onOpen` | `() => void` | Mounts view, `keydown` listener, `fluent-pomofocus-modal` / `no-tasks` classes |
+| `PomofocusModal.onOpen` | `() => void` | Mounts view, capture `keydown`, `fluent-pomofocus-modal` / `no-tasks` classes |
 | `PomofocusModal.onClose` | `() => void` | `plugin.onModalClose()`, unsubscribe, remove listener, `$destroy()` |
+| `PomofocusModal.cycleMode` | `(direction: 1 \| -1) => void` (private) | Writes plugin settings + `switchMode(false)` + `saveSettings`; does not call the Svelte export |
 
 ## Recipes
 
@@ -55,12 +58,12 @@ Timer chrome, task list, in-app settings overlay, and floating modal host. Sourc
 ### Cycle modes from the floating window
 
 1. `PomofocusModal` keydown: Ctrl+Tab / Ctrl+Shift+Tab when `.pomo-modal-backdrop` is absent.
-2. `cycleMode(±1)` writes `plugin.settings.currentMode`, `timerService.switchMode(next, false)`, `saveSettings()`.
+2. Private `cycleMode(±1)` writes `plugin.settings.currentMode`, `timerService.switchMode(next, false)`, `saveSettings()`.
 
 ### Apply Obsidian theme vs painted themes
 
 1. `colorTheme === "obsidian"` → CSS class `theme-obsidian` (uses `--background-secondary`, `--interactive-accent`, etc.).
-2. Otherwise `getThemeBgColor(mode, theme, isRunning, darkModeWhenRunning)` sets inline `background-color` (teal/green/blue; `#151719` when running + dark mode).
+2. Otherwise `getThemeBgColor(mode, theme, isRunning, darkModeWhenRunning)` sets inline `background-color`: `#151719` when running + dark mode; else green `#285943`/`#3b7d62`/`#244d5c`, blue `#254868`/`#396791`/`#233d59`, teal `#225358`/`#347880`/`#26546e` (pomodoro / shortBreak / longBreak).
 
 <!-- BEGIN USER-SPECIFIED -->
 <!-- END USER-SPECIFIED -->
