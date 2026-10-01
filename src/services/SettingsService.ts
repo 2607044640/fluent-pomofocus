@@ -12,19 +12,19 @@ export class SettingsService {
 
   /**
    * Determine the effective settings file path within the vault adapter.
-   * Defaults to `${configDir}/fluent-pomofocus.json` (e.g. `.obsidian/fluent-pomofocus.json`).
+   * Defaults to `${configDir}/fluent-pomofocus.json`.
    */
   public getEffectivePath(customPath?: string): string {
     if (customPath && customPath.trim()) {
       return customPath.trim();
     }
-    const configDir = this.app.vault.configDir || ".obsidian";
+    const configDir = this.app.vault.configDir;
     return `${configDir}/fluent-pomofocus.json`;
   }
 
   /**
    * Load settings with resilient fallback:
-   * 1. Check custom path if configured, else default vault config path (.obsidian/fluent-pomofocus.json).
+   * 1. Check custom path if configured, else default vault config path.
    * 2. If dedicated file doesn't exist, check legacy plugin data.json via plugin.loadData().
    * 3. Seamlessly migrate legacy data to dedicated file.
    * 4. Merge with DEFAULT_SETTINGS and ensure dual-alarm backward compatibility.
@@ -34,7 +34,7 @@ export class SettingsService {
     let loaded: Partial<PomofocusSettings> | null = null;
     let loadedFromDedicated = false;
 
-    // 1. Try reading from dedicated persistent file (.obsidian/fluent-pomofocus.json)
+    // 1. Try reading from dedicated persistent file
     try {
       if (await this.app.vault.adapter.exists(defaultPath)) {
         const content = await this.app.vault.adapter.read(defaultPath);
@@ -62,13 +62,12 @@ export class SettingsService {
       }
     }
 
-    // 2. Fallback to legacy plugin data.json (.obsidian/plugins/fluent-pomofocus/data.json)
+    // 2. Fallback to legacy plugin data.json
     if (!loaded) {
       try {
         const legacy = (await this.plugin.loadData()) as Partial<PomofocusSettings> | null;
         if (legacy) {
           loaded = legacy;
-          console.log("[Fluent Pomofocus] Migrated legacy plugin data.json to dedicated storage.");
         }
       } catch (e) {
         console.warn("[Fluent Pomofocus] Failed to read legacy plugin data:", e);

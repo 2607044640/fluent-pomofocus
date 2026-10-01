@@ -1,5 +1,20 @@
 import { Notice } from "obsidian";
 
+interface ElectronWindow {
+  isMinimized?: () => boolean;
+  restore?: () => void;
+  show?: () => void;
+  focus?: () => void;
+}
+
+interface ElectronRemote {
+  getCurrentWindow?: () => ElectronWindow | undefined;
+}
+
+interface ElectronModule {
+  remote?: ElectronRemote;
+}
+
 export class NotificationService {
   public static requestPermissionIfNeeded(): void {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -12,17 +27,22 @@ export class NotificationService {
   public static focusObsidianWindow(): void {
     try {
       window.focus();
-    } catch (e) {
-      console.warn("window.focus() failed:", e);
+    } catch {
+      // Ignore window focus error
     }
 
     try {
-      const req =
-        (window as unknown as { require?: (mod: string) => any }).require ||
-        (typeof require !== "undefined" ? require : null);
+      const winWithReq = window as unknown as { require?: (mod: string) => unknown };
+      const req: ((mod: string) => unknown) | null =
+        typeof winWithReq.require === "function"
+          ? winWithReq.require
+          : typeof require === "function"
+            ? (require as (mod: string) => unknown)
+            : null;
       if (req) {
-        const electron = req("electron");
-        const remote = electron?.remote || req("@electron/remote");
+        const electron = req("electron") as ElectronModule | undefined;
+        const remoteFallback = req("@electron/remote") as ElectronRemote | undefined;
+        const remote = electron?.remote || remoteFallback;
         const currentWin = remote?.getCurrentWindow?.();
         if (currentWin) {
           if (currentWin.isMinimized?.()) {
@@ -32,19 +52,19 @@ export class NotificationService {
           currentWin.focus?.();
         }
       }
-    } catch (e) {
+    } catch {
       // Remote electron window access might not be available; window.focus() was executed above
     }
   }
 
   public static notify(title: string, message?: string, onClick?: () => void): void {
-    // 1. In-app Obsidian Notice
+    // 1. In-app Notice
     const noticeText = message ? `${title}\n${message}` : title;
     const notice = new Notice(noticeText, 6000);
     if (onClick) {
       const el = (notice as unknown as { noticeEl?: HTMLElement }).noticeEl;
       if (el) {
-        el.style.cursor = "pointer";
+        el.setCssStyles({ cursor: "pointer" });
         el.addEventListener("click", () => {
           NotificationService.focusObsidianWindow();
           onClick();
@@ -70,10 +90,11 @@ export class NotificationService {
               onClick();
             }
           };
-        } catch (e) {
-          console.warn("Native notification failed:", e);
+        } catch {
+          // Native notification constructor might fail in certain environments
         }
       }
     }
   }
 }
+

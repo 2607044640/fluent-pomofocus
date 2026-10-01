@@ -8,3 +8,6 @@ desktop.ini
 *.log
 data.json
 .hotreload
+.env
+*.pem
+*.key

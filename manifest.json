@@ -3,7 +3,7 @@
   "name": "Fluent Pomofocus",
   "version": "1.2.0",
   "minAppVersion": "1.7.2",
-  "description": "A Pomofocus recreation for Obsidian with system sound notifications, drift-free timer, and popout mini-window.",
+  "description": "A Pomofocus recreation with system sound notifications, drift-free timer, and popout mini-window.",
   "author": "Jeff1024",
   "authorUrl": "https://github.com/2607044640",
   "isDesktopOnly": false

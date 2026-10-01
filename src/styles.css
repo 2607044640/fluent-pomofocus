@@ -1,48 +1,49 @@
 /* Fluent Pomofocus Styles */
-.workspace-leaf-content[data-type="fluent-pomofocus-view"] .view-content {
-  padding: 0 !important;
+body .workspace-leaf-content[data-type="fluent-pomofocus-view"] .view-content {
+  padding: 0;
   overflow: hidden;
 }
 
 /* Fluent Pomofocus - Floating Modal Styles (A1 Floating UI Standard) */
-.fluent-pomofocus-modal {
-  width: var(--pomofocus-modal-width, 85vw) !important;
-  max-width: 680px !important;
-  height: var(--pomofocus-modal-height, 85vh) !important;
-  max-height: 820px !important;
-  padding: 0 !important;
-  border-radius: 12px !important;
-  border: 1px solid var(--background-modifier-border) !important;
-  background-color: var(--background-primary) !important;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45) !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
+body .modal-container .modal.fluent-pomofocus-modal {
+  width: var(--pomofocus-modal-width, 85vw);
+  max-width: 680px;
+  height: var(--pomofocus-modal-height, 85vh);
+  max-height: 820px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--background-modifier-border);
+  background-color: var(--background-primary);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Floating Modal without Tasks: Widescreen Golden Aspect Ratio */
-.fluent-pomofocus-modal.no-tasks {
-  width: var(--pomofocus-modal-no-tasks-width, 640px) !important;
-  max-width: 90vw !important;
-  height: auto !important;
-  min-height: 400px !important;
-  max-height: 85vh !important;
+body .modal-container .modal.fluent-pomofocus-modal.no-tasks {
+  width: var(--pomofocus-modal-no-tasks-width, 640px);
+  max-width: 90vw;
+  height: auto;
+  min-height: 400px;
+  max-height: 85vh;
 }
 
 /* Hide native modal close button */
-.fluent-pomofocus-modal .modal-close-button {
-  display: none !important;
+body .modal-container .modal.fluent-pomofocus-modal .modal-close-button {
+  display: none;
 }
 
-.fluent-pomofocus-modal .modal-content {
-  padding: 0 !important;
-  margin: 0 !important;
-  height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
+body .modal-container .modal.fluent-pomofocus-modal .modal-content {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.fluent-pomofocus-modal.no-tasks .modal-content {
-  height: auto !important;
+body .modal-container .modal.fluent-pomofocus-modal.no-tasks .modal-content {
+  height: auto;
 }
+

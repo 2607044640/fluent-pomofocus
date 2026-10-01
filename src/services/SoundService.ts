@@ -1,4 +1,4 @@
-import { App, PluginManifest } from "obsidian";
+import { App, PluginManifest, requestUrl } from "obsidian";
 import { SoundType } from "../models/types";
 
 interface SoundMeta {
@@ -143,7 +143,9 @@ export class SoundService {
         source.onended = null;
         source.stop();
         source.disconnect();
-      } catch {}
+      } catch {
+        // Ignore audio source disconnect error
+      }
     }
     this.activeSources = [];
 
@@ -151,14 +153,18 @@ export class SoundService {
       try {
         osc.stop();
         osc.disconnect();
-      } catch {}
+      } catch {
+        // Ignore oscillator disconnect error
+      }
     }
     this.activeOscillators = [];
 
     for (const gain of this.activeGainNodes) {
       try {
         gain.disconnect();
-      } catch {}
+      } catch {
+        // Ignore gain node disconnect error
+      }
     }
     this.activeGainNodes = [];
   }
@@ -184,7 +190,8 @@ export class SoundService {
     }
 
     const ctx = this.getContext();
-    const pluginDir = this.manifest?.dir || ".obsidian/plugins/fluent-pomofocus";
+    const configDir = this.app?.vault?.configDir || "vault-config";
+    const pluginDir = this.manifest?.dir || `${configDir}/plugins/${this.manifest?.id || "fluent-pomofocus"}`;
     const soundsDir = `${pluginDir}/sounds`;
     const filePath = `${soundsDir}/${meta.filename}`;
 
@@ -201,10 +208,10 @@ export class SoundService {
         }
       }
 
-      // 2. Fetch from remote CDN if not present locally
-      const res = await fetch(meta.url);
-      if (res.ok) {
-        const arrayBuf = await res.arrayBuffer();
+      // 2. Fetch from remote CDN if not present locally using Obsidian requestUrl
+      const res = await requestUrl({ url: meta.url });
+      if (res.status >= 200 && res.status < 300) {
+        const arrayBuf = res.arrayBuffer;
 
         if (this.app?.vault?.adapter) {
           try {
