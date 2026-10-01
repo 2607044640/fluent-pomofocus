@@ -137,7 +137,7 @@ export class SettingsService {
       console.error("[Fluent Pomofocus] Failed to write dedicated settings file:", e);
     }
 
-    // If a custom path is used, also update .obsidian/fluent-pomofocus.json so plugin knows where to look
+    // If a custom path is used, also update defaultPath so plugin knows where to look
     const defaultPath = this.getEffectivePath();
     if (targetPath !== defaultPath) {
       try {

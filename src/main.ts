@@ -1,5 +1,5 @@
 import { Plugin, ItemView, WorkspaceLeaf, PluginSettingTab, Setting, App, Notice } from "obsidian";
-import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS } from "./models/types";
+import { VIEW_TYPE_POMOFOCUS, PomofocusSettings, DEFAULT_SETTINGS, SoundType } from "./models/types";
 import { SoundService } from "./services/SoundService";
 import { TimerService } from "./services/TimerService";
 import { SettingsService } from "./services/SettingsService";
@@ -40,7 +40,7 @@ export class PomofocusViewWrapper extends ItemView {
         timerService: this.plugin.timerService,
         soundService: this.plugin.soundService,
         onSaveSettings: () => this.plugin.saveSettings(),
-        onOpenSmallWindow: () => this.plugin.openPopoutWindow(),
+        onOpenSmallWindow: () => { void this.plugin.openPopoutWindow(); },
       },
     });
   }
@@ -190,7 +190,7 @@ export default class FluentPomofocusPlugin extends Plugin {
     }
 
     if (leaf) {
-      workspace.revealLeaf(leaf);
+      await workspace.revealLeaf(leaf);
     }
   }
 
@@ -274,8 +274,9 @@ export class PomofocusSettingTab extends PluginSettingTab {
           .addOption("positive", "Positive (愉悦提示)")
           .addOption("none", "None (静音)")
           .setValue(this.plugin.settings.focusAlarmSound || "wood")
-          .onChange(async (val) => {
-            await this.plugin.updateAndBroadcastSettings({ focusAlarmSound: val as any, alarmSound: val as any }, "setting-tab");
+          .onChange(async (val: string) => {
+            const sound = val as SoundType;
+            await this.plugin.updateAndBroadcastSettings({ focusAlarmSound: sound, alarmSound: sound }, "setting-tab");
           });
       });
 
@@ -299,8 +300,9 @@ export class PomofocusSettingTab extends PluginSettingTab {
           .addOption("positive", "Positive (愉悦提示)")
           .addOption("none", "None (静音)")
           .setValue(this.plugin.settings.breakAlarmSound || "bell")
-          .onChange(async (val) => {
-            await this.plugin.updateAndBroadcastSettings({ breakAlarmSound: val as any }, "setting-tab");
+          .onChange(async (val: string) => {
+            const sound = val as SoundType;
+            await this.plugin.updateAndBroadcastSettings({ breakAlarmSound: sound }, "setting-tab");
           });
       });
 

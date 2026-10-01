@@ -508,9 +508,9 @@
   .pomo-btn-nav.pomo-btn-close {
     padding: 4px 6px;
   }
-  .pomo-btn-nav.pomo-btn-close:hover {
-    background: var(--background-modifier-error-hover, rgba(235, 87, 87, 0.2)) !important;
-    color: var(--text-error, #eb5757) !important;
+  .pomo-header .pomo-btn-nav.pomo-btn-close:hover {
+    background: var(--background-modifier-error-hover, rgba(235, 87, 87, 0.2));
+    color: var(--text-error, #eb5757);
   }
 
   .pomo-main-content {

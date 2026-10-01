@@ -23,8 +23,75 @@ const copyCssPlugin = {
 					fs.copyFileSync("main.css", "styles.css");
 					console.log("Copied main.css to styles.css successfully.");
 				}
+				if (fs.existsSync("styles.css")) {
+					const css = fs.readFileSync("styles.css", "utf8");
+					if (css.includes("!important")) {
+						throw new Error("[Portal Compliance Guard] BANNED: Output styles.css must NOT contain '!important'.");
+					}
+				}
 			} catch (e) {
-				console.error("Failed to copy main.css to styles.css:", e);
+				console.error("Failed to copy/verify main.css to styles.css:", e);
+				throw e;
+			}
+		});
+	},
+};
+
+import path from "path";
+
+const portalCompliancePlugin = {
+	name: 'portal-compliance-guard',
+	setup(build) {
+		build.onStart(() => {
+			// 1. Manifest assertions
+			if (fs.existsSync("manifest.json")) {
+				const manifestRaw = fs.readFileSync("manifest.json", "utf8");
+				const manifest = JSON.parse(manifestRaw);
+				if (/\bobsidian\b/i.test(manifest.description || "")) {
+					throw new Error("[Portal Compliance Guard] BANNED: manifest description must NOT contain the word 'Obsidian'.");
+				}
+				if (/^(a1-|A1)/.test(manifest.id || "")) {
+					throw new Error("[Portal Compliance Guard] BANNED: manifest id must NOT contain personal prefix 'a1-' or 'A1'.");
+				}
+			}
+
+			// 2. CSS assertions
+			if (fs.existsSync("src/styles.css")) {
+				const css = fs.readFileSync("src/styles.css", "utf8");
+				if (css.includes("!important")) {
+					throw new Error("[Portal Compliance Guard] BANNED: src/styles.css must NOT contain '!important'.");
+				}
+			}
+
+			// 3. Source code assertions
+			function scanDir(dir) {
+				const entries = fs.readdirSync(dir, { withFileTypes: true });
+				for (const entry of entries) {
+					const fullPath = path.join(dir, entry.name);
+					if (entry.isDirectory()) {
+						scanDir(fullPath);
+					} else if (/\.(ts|js|svelte)$/.test(entry.name)) {
+						const code = fs.readFileSync(fullPath, "utf8");
+						if (code.includes("navigator.platform")) {
+							throw new Error(`[Portal Compliance Guard] BANNED: ${fullPath} contains 'navigator.platform'.`);
+						}
+						if (/\.innerHTML\s*=/.test(code)) {
+							throw new Error(`[Portal Compliance Guard] BANNED: ${fullPath} contains unsafe '.innerHTML ='.`);
+						}
+						if (code.includes("createContextualFragment")) {
+							throw new Error(`[Portal Compliance Guard] BANNED: ${fullPath} contains 'createContextualFragment'.`);
+						}
+						if (/\bkeyCode\b/.test(code)) {
+							throw new Error(`[Portal Compliance Guard] BANNED: ${fullPath} contains deprecated '.keyCode'.`);
+						}
+						if (/\.style\.[a-zA-Z]+\s*=/.test(code)) {
+							throw new Error(`[Portal Compliance Guard] BANNED: ${fullPath} contains direct style assignment '.style.xxx ='. Use setCssStyles.`);
+						}
+					}
+				}
+			}
+			if (fs.existsSync("src")) {
+				scanDir("src");
 			}
 		});
 	},
@@ -60,6 +127,7 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	plugins: [
+		portalCompliancePlugin,
 		esbuildSvelte({
 			compilerOptions: { css: "injected" },
 			preprocess: sveltePreprocess(),

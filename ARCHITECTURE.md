@@ -1,6 +1,6 @@
 # Fluent Pomofocus Architecture
 
-Obsidian plugin (`manifest.json` id `fluent-pomofocus`, v1.2.0, `minAppVersion` 1.7.2, `isDesktopOnly: false`). Entry `src/main.ts` bundles via `esbuild.config.mjs` (esbuild-svelte, CSS injected, CJS, `es2018`) to `main.js`. `copyCssPlugin` copies `main.css` → `styles.css`. One plugin-owned `TimerService` + `SoundService`; three hosts mount the same `PomofocusView.svelte`.
+Obsidian plugin (`manifest.json` id `fluent-pomofocus`, v1.2.1, `minAppVersion` 1.7.2, `isDesktopOnly: false`). Entry `src/main.ts` bundles via `esbuild.config.mjs` (esbuild-svelte, CSS injected, CJS, `es2018`) to `main.js`. `copyCssPlugin` copies `main.css` → `styles.css`. One plugin-owned `TimerService` + `SoundService`; three hosts mount the same `PomofocusView.svelte`.
 
 ## Global Invariants
 
