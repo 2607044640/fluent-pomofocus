@@ -74,9 +74,6 @@ export default class FluentPomofocusPlugin extends Plugin {
   ): Promise<void> {
     Object.assign(this.settings, newSettings);
     this.timerService.updateSettings(this.settings);
-    if ("autoPauseEnabled" in newSettings || "autoPauseMinutes" in newSettings) {
-      this.timerService.recordUserActivity();
-    }
     for (const listener of this.settingsListeners) {
       try {
         listener(this.settings, source);
@@ -165,6 +162,10 @@ export default class FluentPomofocusPlugin extends Plugin {
   }
 
   onunload(): void {
+    if (this.activeModal) {
+      this.activeModal.close();
+      this.activeModal = null;
+    }
     if (this.timerService) {
       this.timerService.destroy();
     }

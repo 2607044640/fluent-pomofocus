@@ -260,7 +260,7 @@
         </div>
 
         <div class="pomo-switch-row">
-          <span>Auto-Pause when idle (无操作自动暂停)</span>
+          <span>Auto-Pause timer (定时自动暂停)</span>
           <input
             type="checkbox"
             class="pomo-toggle"
@@ -270,7 +270,7 @@
         </div>
 
         <div class="pomo-input-row">
-          <span>Idle timeout (minutes)</span>
+          <span>Auto-pause after (minutes)</span>
           <input
             type="number"
             min="1"

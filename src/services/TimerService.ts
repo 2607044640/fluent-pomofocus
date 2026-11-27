@@ -10,17 +10,7 @@ export interface TimerState {
   round: number;
   formattedTime: string;
   autoPaused: boolean;
-}
-
-interface ElectronPowerMonitor {
-  getSystemIdleTime?: () => number;
-}
-
-interface ElectronApi {
-  powerMonitor?: ElectronPowerMonitor;
-  remote?: {
-    powerMonitor?: ElectronPowerMonitor;
-  };
+  autoPauseRemainingSeconds: number | null;
 }
 
 type Listener = (state: TimerState) => void;
@@ -38,8 +28,10 @@ export class TimerService {
   private targetEndTime: number = 0;
   private intervalId: number | null = null;
   private autoPaused: boolean = false;
-  private lastUserActivityAt: number = Date.now();
-  private fallbackActivityHandler: (() => void) | null = null;
+  private autoPauseRemainingSeconds: number = 30 * 60;
+  private autoPauseEndTime: number = 0;
+  private lastAutoPauseEnabled: boolean = false;
+  private lastAutoPauseMinutes: number = 30;
 
   // Callback when a pomodoro completes (to increment active task count)
   public onPomodoroComplete?: () => void;
@@ -53,18 +45,10 @@ export class TimerService {
     this.soundService = soundService;
     this.mode = settings.currentMode || "pomodoro";
     this.round = settings.pomodoroRound || 1;
+    this.lastAutoPauseEnabled = Boolean(settings.autoPauseEnabled);
+    this.lastAutoPauseMinutes = this.getAutoPauseThresholdMinutes();
+    this.autoPauseRemainingSeconds = this.lastAutoPauseMinutes * 60;
     this.initDurationForMode(this.mode);
-    if (this.getSystemIdleSeconds() === null && typeof window !== "undefined") {
-      this.fallbackActivityHandler = () => {
-        if (this.isRunning) {
-          this.lastUserActivityAt = Date.now();
-        }
-      };
-      window.addEventListener("pointerdown", this.fallbackActivityHandler, { passive: true, capture: true });
-      window.addEventListener("keydown", this.fallbackActivityHandler, { passive: true, capture: true });
-      window.addEventListener("wheel", this.fallbackActivityHandler, { passive: true, capture: true });
-      window.addEventListener("touchstart", this.fallbackActivityHandler, { passive: true, capture: true });
-    }
   }
 
   public subscribe(listener: Listener): () => void {
@@ -88,71 +72,29 @@ export class TimerService {
     }
   }
 
-  public recordUserActivity(): void {
-    this.lastUserActivityAt = Date.now();
-    if (this.autoPaused) {
-      this.autoPaused = false;
-      this.notify();
+  public resetAutoPauseCountdown(): void {
+    this.autoPaused = false;
+    this.autoPauseRemainingSeconds = this.getAutoPauseThresholdMinutes() * 60;
+    if (this.isRunning && this.settings.autoPauseEnabled) {
+      this.autoPauseEndTime = Date.now() + this.autoPauseRemainingSeconds * 1000;
     }
-  }
-
-  private getSystemIdleSeconds(): number | null {
-    try {
-      const winWithReq = window as unknown as { require?: (mod: string) => unknown };
-      const req: ((mod: string) => unknown) | null =
-        typeof winWithReq.require === "function"
-          ? winWithReq.require
-          : typeof require === "function"
-            ? (require as (mod: string) => unknown)
-            : null;
-      if (!req) return null;
-
-      const electron = req("electron") as ElectronApi | undefined;
-      let powerMonitor = electron?.powerMonitor || electron?.remote?.powerMonitor;
-      if (!powerMonitor) {
-        try {
-          const remoteMod = req("@electron/remote") as { powerMonitor?: ElectronPowerMonitor } | undefined;
-          powerMonitor = remoteMod?.powerMonitor;
-        } catch {
-          // @electron/remote may not be exposed
-        }
-      }
-
-      if (typeof powerMonitor?.getSystemIdleTime === "function") {
-        const idleSec = powerMonitor.getSystemIdleTime();
-        if (typeof idleSec === "number" && Number.isFinite(idleSec) && idleSec >= 0) {
-          return idleSec;
-        }
-      }
-    } catch {
-      // Fallback to window activity listeners when Electron powerMonitor is unavailable
-    }
-    return null;
-  }
-
-  private getIdleSeconds(): number {
-    const sinceUserControlSec = Math.max(0, Math.floor((Date.now() - this.lastUserActivityAt) / 1000));
-    const systemIdleSec = this.getSystemIdleSeconds();
-    if (systemIdleSec !== null) {
-      return Math.min(systemIdleSec, sinceUserControlSec);
-    }
-    return sinceUserControlSec;
+    this.notify();
   }
 
   private getAutoPauseThresholdMinutes(): number {
     return Math.max(1, Math.min(720, Math.round(Number(this.settings.autoPauseMinutes) || 30)));
   }
 
-  private shouldAutoPause(): boolean {
-    if (!this.isRunning || !this.settings.autoPauseEnabled) return false;
-    return this.getIdleSeconds() >= this.getAutoPauseThresholdMinutes() * 60;
+  private getVisibleAutoPauseRemainingSeconds(): number | null {
+    if (!this.isRunning || !this.settings.autoPauseEnabled) return null;
+    return Math.max(0, this.autoPauseRemainingSeconds);
   }
 
   private triggerAutoPause(): void {
     this.soundService.stopSound();
     this.pause(true);
     const mins = this.getAutoPauseThresholdMinutes();
-    NotificationService.notice(`Pomofocus auto-paused after ${mins}m idle`);
+    NotificationService.notice(`Pomofocus auto-paused after ${mins}m`);
   }
 
   public getState(): TimerState {
@@ -168,22 +110,38 @@ export class TimerService {
       round: this.round,
       formattedTime,
       autoPaused: this.autoPaused,
+      autoPauseRemainingSeconds: this.getVisibleAutoPauseRemainingSeconds(),
     };
   }
 
   public updateSettings(newSettings: PomofocusSettings): void {
     this.settings = newSettings;
-    if (!newSettings.autoPauseEnabled) {
+    const nextEnabled = Boolean(newSettings.autoPauseEnabled);
+    const nextMins = this.getAutoPauseThresholdMinutes();
+
+    if (!nextEnabled) {
       this.autoPaused = false;
     }
+    if (nextEnabled !== this.lastAutoPauseEnabled || nextMins !== this.lastAutoPauseMinutes) {
+      this.lastAutoPauseEnabled = nextEnabled;
+      this.lastAutoPauseMinutes = nextMins;
+      this.autoPauseRemainingSeconds = nextMins * 60;
+      if (this.isRunning && nextEnabled) {
+        this.autoPauseEndTime = Date.now() + this.autoPauseRemainingSeconds * 1000;
+      }
+      if (nextEnabled) {
+        this.autoPaused = false;
+      }
+    }
+
     if (!this.isRunning) {
       const nextTotalSeconds = this.getDurationMinutesForMode(this.mode) * 60;
       if (nextTotalSeconds !== this.totalSeconds) {
         this.totalSeconds = nextTotalSeconds;
         this.remainingSeconds = nextTotalSeconds;
       }
-      this.notify();
     }
+    this.notify();
   }
 
   private getDurationMinutesForMode(mode: TimerMode): number {
@@ -205,7 +163,7 @@ export class TimerService {
 
   public switchMode(targetMode: TimerMode, autoStart: boolean = false, isAutoAdvance: boolean = false): void {
     if (!isAutoAdvance) {
-      this.lastUserActivityAt = Date.now();
+      this.autoPauseRemainingSeconds = this.getAutoPauseThresholdMinutes() * 60;
     }
     this.autoPaused = false;
     this.pause();
@@ -221,8 +179,8 @@ export class TimerService {
 
   public start(isAutoStart: boolean = false): void {
     if (this.isRunning) return;
-    if (!isAutoStart) {
-      this.lastUserActivityAt = Date.now();
+    if (!isAutoStart && (this.autoPaused || this.autoPauseRemainingSeconds <= 0)) {
+      this.autoPauseRemainingSeconds = this.getAutoPauseThresholdMinutes() * 60;
     }
     this.autoPaused = false;
     if (this.remainingSeconds <= 0) {
@@ -231,8 +189,12 @@ export class TimerService {
 
     NotificationService.requestPermissionIfNeeded();
 
+    const now = Date.now();
     this.isRunning = true;
-    this.targetEndTime = Date.now() + this.remainingSeconds * 1000;
+    this.targetEndTime = now + this.remainingSeconds * 1000;
+    if (this.settings.autoPauseEnabled) {
+      this.autoPauseEndTime = now + this.autoPauseRemainingSeconds * 1000;
+    }
 
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
@@ -253,19 +215,24 @@ export class TimerService {
       }
       return;
     }
+    const now = Date.now();
     this.isRunning = false;
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
       this.intervalId = null;
     }
     // Lock in current remaining seconds based on exact time difference
-    this.remainingSeconds = Math.max(0, Math.round((this.targetEndTime - Date.now()) / 1000));
+    this.remainingSeconds = Math.max(0, Math.round((this.targetEndTime - now) / 1000));
+    if (triggeredByAutoPause) {
+      this.autoPauseRemainingSeconds = 0;
+    } else if (this.settings.autoPauseEnabled) {
+      this.autoPauseRemainingSeconds = Math.max(0, Math.round((this.autoPauseEndTime - now) / 1000));
+    }
     this.notify();
   }
 
   public toggle(): void {
     if (this.isRunning) {
-      this.recordUserActivity();
       this.pause();
     } else {
       this.start(false);
@@ -273,30 +240,39 @@ export class TimerService {
   }
 
   public reset(): void {
-    this.lastUserActivityAt = Date.now();
     this.autoPaused = false;
     this.pause();
+    this.autoPauseRemainingSeconds = this.getAutoPauseThresholdMinutes() * 60;
     this.initDurationForMode(this.mode);
     this.notify();
     this.emitStateChange();
   }
 
   public skip(): void {
-    this.lastUserActivityAt = Date.now();
     this.autoPaused = false;
     this.completeCurrentPeriod(false);
   }
 
   private tick(): void {
-    if (this.shouldAutoPause()) {
-      this.triggerAutoPause();
-      return;
+    const now = Date.now();
+    let autoPauseChanged = false;
+
+    if (this.settings.autoPauseEnabled) {
+      const nextAutoPauseRem = Math.max(0, Math.round((this.autoPauseEndTime - now) / 1000));
+      if (nextAutoPauseRem !== this.autoPauseRemainingSeconds) {
+        this.autoPauseRemainingSeconds = nextAutoPauseRem;
+        autoPauseChanged = true;
+      }
+      if (nextAutoPauseRem <= 0) {
+        this.triggerAutoPause();
+        return;
+      }
     }
 
-    const diffMs = this.targetEndTime - Date.now();
+    const diffMs = this.targetEndTime - now;
     const remaining = Math.max(0, Math.round(diffMs / 1000));
 
-    if (remaining !== this.remainingSeconds) {
+    if (remaining !== this.remainingSeconds || autoPauseChanged) {
       this.remainingSeconds = remaining;
       this.notify();
     }
@@ -355,13 +331,6 @@ export class TimerService {
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
       this.intervalId = null;
-    }
-    if (this.fallbackActivityHandler && typeof window !== "undefined") {
-      window.removeEventListener("pointerdown", this.fallbackActivityHandler, true);
-      window.removeEventListener("keydown", this.fallbackActivityHandler, true);
-      window.removeEventListener("wheel", this.fallbackActivityHandler, true);
-      window.removeEventListener("touchstart", this.fallbackActivityHandler, true);
-      this.fallbackActivityHandler = null;
     }
     this.listeners.clear();
   }

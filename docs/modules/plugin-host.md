@@ -14,7 +14,7 @@ Obsidian lifecycle, view registration, commands, and settings broadcast. Source:
 
 1. `settings` is a mutable object on the plugin; writers go through `updateAndBroadcastSettings` (Why chosen over silent `Object.assign`: every host must receive the same snapshot via `settingsListeners`).
 2. At most one `PomofocusModal` (`activeModal`); a second open is a no-op if `containerEl` is still in `document.body` (Why chosen over stacking modals: one shared timer UI).
-3. `onunload` only destroys the timer interval; it does not write settings (Why chosen over save-on-unload: mode/round already persist on `onStateChange`).
+3. `onunload` closes any active floating `PomofocusModal` and destroys the timer interval; it does not detach sidebar leaves or write settings (Why chosen over save-on-unload: mode/round already persist on `onStateChange`, and closing the modal prevents orphaned DOM overlays across plugin reloads).
 
 ## Numbered Data Flow
 
@@ -25,7 +25,7 @@ Obsidian lifecycle, view registration, commands, and settings broadcast. Source:
 5. `registerView("fluent-pomofocus-view", leaf => new PomofocusViewWrapper(leaf, this))`.
 6. Ribbon `timer` and commands route to `activateView` / `openPopoutWindow` / `openFloatingModal` / `timerService.toggle` / `loadSettings`.
 7. `PomofocusViewWrapper.onOpen` mounts `PomofocusView` with `app`, `plugin`, `settings`, `timerService`, `soundService`, `onSaveSettings`, `onOpenSmallWindow`.
-8. `onunload` → `timerService.destroy()`.
+8. `onunload` → closes `activeModal` if open, then `timerService.destroy()`.
 
 ## Side-effects API
 

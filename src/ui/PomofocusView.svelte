@@ -229,7 +229,11 @@
     if (!trimmed) return;
     const parsed = Math.round(Number(trimmed));
     if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 720) {
-      void plugin.updateAndBroadcastSettings({ autoPauseMinutes: parsed }, "view");
+      settings = { ...settings, autoPauseEnabled: true, autoPauseMinutes: parsed };
+      void plugin.updateAndBroadcastSettings(
+        { autoPauseEnabled: true, autoPauseMinutes: parsed },
+        "view"
+      );
     }
   }
 
@@ -237,8 +241,23 @@
     const clamped = clampAutoPauseMinutes(autoPauseMinutesInput);
     autoPauseMinutesInput = String(clamped);
     if (clamped !== settings.autoPauseMinutes) {
-      void plugin.updateAndBroadcastSettings({ autoPauseMinutes: clamped }, "view");
+      settings = { ...settings, autoPauseEnabled: true, autoPauseMinutes: clamped };
+      void plugin.updateAndBroadcastSettings(
+        { autoPauseEnabled: true, autoPauseMinutes: clamped },
+        "view"
+      );
     }
+  }
+
+  function formatAutoPauseMinutesLeft(totalSeconds: number): string {
+    if (totalSeconds <= 0) return "0m left";
+    return `${Math.ceil(totalSeconds / 60)}m left`;
+  }
+
+  function formatAutoPauseClock(totalSeconds: number): string {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   }
 
   function handleAutoPauseMinutesKeydown(e: KeyboardEvent) {
@@ -332,7 +351,7 @@
     <div class="pomo-sub-info">
       <div class="pomo-status-msg" class:is-auto-paused={timerState.autoPaused}>
         {#if timerState.autoPaused}
-          Auto-paused after {clampAutoPauseMinutes(settings.autoPauseMinutes)}m idle
+          Auto-paused after {clampAutoPauseMinutes(settings.autoPauseMinutes)}m
         {:else}
           {timerState.mode === "pomodoro" ? "Time to focus!" : "Time for a break!"}
         {/if}
@@ -345,21 +364,21 @@
           class:active={settings.autoPauseEnabled}
           aria-pressed={settings.autoPauseEnabled}
           on:click={toggleAutoPause}
-          title="Click to enable/disable auto-pause when left unattended (点击开启/关闭：超过设定时间无操作自动暂停)"
+          title="Click to enable/disable auto-pause countdown (点击开启/关闭：倒计时结束自动暂停)"
         >
           <Moon size={13} />
           <span>Auto-Pause</span>
           <span class="pomo-autopause-state">{settings.autoPauseEnabled ? "ON" : "OFF"}</span>
         </button>
 
-        <div class="pomo-autopause-time-wrap" title="Idle duration in minutes before auto-pausing (无操作自动暂停分钟数)">
+        <div class="pomo-autopause-time-wrap" title="Auto-pause duration in minutes; editing enables Auto-Pause (自动暂停分钟数，修改自动开启)">
           <input
             bind:this={autoPauseInputEl}
             type="number"
             min="1"
             max="720"
             class="pomo-autopause-input"
-            aria-label="Auto-pause idle minutes"
+            aria-label="Auto-pause minutes"
             value={autoPauseMinutesInput}
             on:input={handleAutoPauseMinutesInput}
             on:blur={commitAutoPauseMinutes}
@@ -367,6 +386,15 @@
           />
           <span class="pomo-autopause-unit">min</span>
         </div>
+
+        {#if settings.autoPauseEnabled && timerState.isRunning && timerState.autoPauseRemainingSeconds !== null}
+          <span
+            class="pomo-autopause-countdown"
+            title={`Auto-pause in ${formatAutoPauseClock(timerState.autoPauseRemainingSeconds)} (距离自动暂停剩余时间)`}
+          >
+            · {formatAutoPauseMinutesLeft(timerState.autoPauseRemainingSeconds)}
+          </span>
+        {/if}
       </div>
     </div>
 
@@ -805,9 +833,9 @@
     height: 24px;
     padding: 0 9px;
     border-radius: 5px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 11.5px;
     font-weight: 500;
     cursor: pointer;
@@ -817,23 +845,26 @@
       border-color 150ms cubic-bezier(0.2, 0, 0, 1);
   }
   .pomo-autopause-btn:hover {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.2);
     color: #ffffff;
   }
   .pomo-autopause-btn.active {
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.55);
     color: #ffffff;
-    font-weight: 600;
+    font-weight: 700;
   }
   .theme-obsidian .pomo-autopause-btn {
-    color: var(--text-muted);
+    background: var(--background-modifier-hover);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
   }
   .theme-obsidian .pomo-autopause-btn:hover {
-    background: var(--background-modifier-hover);
-    color: var(--text-normal);
+    background: var(--background-modifier-active-hover);
   }
   .theme-obsidian .pomo-autopause-btn.active {
     background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
     color: var(--text-on-accent, #ffffff);
   }
 
@@ -841,7 +872,7 @@
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.4px;
-    opacity: 0.9;
+    opacity: 0.92;
   }
 
   .pomo-autopause-time-wrap {
@@ -889,6 +920,17 @@
   }
   .theme-obsidian .pomo-autopause-unit {
     color: var(--text-muted);
+  }
+
+  .pomo-autopause-countdown {
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #fde68a;
+    user-select: none;
+  }
+  .theme-obsidian .pomo-autopause-countdown {
+    color: var(--interactive-accent);
   }
 
   @media (prefers-reduced-motion: reduce) {

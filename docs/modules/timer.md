@@ -7,7 +7,7 @@ Wall-clock pomodoro state machine. Source: `src/services/TimerService.ts`. Types
 | Component | Responsible For | MUST NOT Contain |
 |---|---|---|
 | `TimerService` | Mode, round, remaining/total seconds, start/pause/toggle/reset/skip, 200 ms interval, period completion | Vault I/O, Svelte rendering, task list mutation |
-| `TimerState` | Snapshot: `mode`, `isRunning`, `remainingSeconds`, `totalSeconds`, `round`, `formattedTime` (`MM:SS`), `autoPaused` | Persistence keys |
+| `TimerState` | Snapshot: `mode`, `isRunning`, `remainingSeconds`, `totalSeconds`, `round`, `formattedTime` (`MM:SS`), `autoPaused`, `autoPauseRemainingSeconds` | Persistence keys |
 | Callbacks | `onPomodoroComplete`, `onStateChange`, `onNotificationClick` | Direct UI construction |
 
 ## Key Invariants
@@ -15,7 +15,7 @@ Wall-clock pomodoro state machine. Source: `src/services/TimerService.ts`. Types
 1. Tick uses `targetEndTime - Date.now()` rounded to seconds, interval 200 ms (Why chosen over decrement-per-interval: hidden Electron windows throttle `setInterval` and the clock would run slow).
 2. Duration changes from `updateSettings` apply only when `!isRunning` and only reset `remainingSeconds` if the current mode's duration actually changed (Why chosen over live-resetting on any settings edit: toggling options like auto-pause while paused must not wipe remaining time).
 3. `skip()` completes without alarm/notification (`playAlert = false`); natural expiry plays sound + `NotificationService.notify` (Why chosen over always alerting: skip is an explicit user advance).
-4. Inactivity auto-pause (`autoPauseEnabled` + `autoPauseMinutes`) checks `min(Electron powerMonitor.getSystemIdleTime(), elapsedSinceUserControl)` before expiry inside `tick()`, falls back to DOM input listeners only when `powerMonitor` is absent, and auto-advance (`switchMode(..., isAutoAdvance=true)`) never resets the idle timer (Why chosen over DOM-only idle or always resetting in `start()`: coding in external apps stays uninterrupted while unattended loops pause and silence sound instead of ringing overnight).
+4. Auto-pause timer (`autoPauseEnabled` + `autoPauseMinutes`) counts down continuously via wall-clock `autoPauseEndTime` while `isRunning` without resetting on mouse/keyboard activity or period auto-advances (`switchMode(..., isAutoAdvance=true)`), pauses cleanly when `<= 0` while stopping any active sound, and resets when `autoPauseEnabled` flips `false -> true`, `autoPauseMinutes` changes, `reset()` runs, or restarting after auto-pause (Why chosen over idle-only tracking: unattended sleep timers must reliably count down even if inputs/touch events occur).
 
 ## Numbered Data Flow
 
