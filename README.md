@@ -38,7 +38,7 @@ Also: **Start / Pause Pomofocus Timer**, **Reload Pomofocus Settings from Disk**
 
 ## Timer
 
-Modes: **Pomodoro**, **Short Break**, **Long Break**. Defaults: 50 / 10 / 20 minutes; long break every 3 completed pomodoros. START / PAUSE on the card; skip appears once the period has started. Auto-start of the next break or pomodoro is on by default.
+Modes: **Pomodoro**, **Short Break**, **Long Break**. Defaults: 50 / 10 / 20 minutes; long break every 3 completed pomodoros. START / PAUSE on the card; skip appears once the period has started. Auto-start of the next break or pomodoro is on by default. An on-screen **Auto-Pause** toggle + minutes field pauses the loop and silences alarms automatically if the computer stays idle beyond the configured timeout (default 30 min, configurable 1–720 min on the timer view or in Settings).
 
 Floating modal keys: `Space` start/pause (not while typing), `Ctrl+Tab` / `Ctrl+Shift+Tab` cycle modes, `Esc` close.
 

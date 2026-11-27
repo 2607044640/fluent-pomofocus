@@ -9,6 +9,18 @@ export interface TimerState {
   totalSeconds: number;
   round: number;
   formattedTime: string;
+  autoPaused: boolean;
+}
+
+interface ElectronPowerMonitor {
+  getSystemIdleTime?: () => number;
+}
+
+interface ElectronApi {
+  powerMonitor?: ElectronPowerMonitor;
+  remote?: {
+    powerMonitor?: ElectronPowerMonitor;
+  };
 }
 
 type Listener = (state: TimerState) => void;
@@ -25,6 +37,9 @@ export class TimerService {
   private round: number = 1;
   private targetEndTime: number = 0;
   private intervalId: number | null = null;
+  private autoPaused: boolean = false;
+  private lastUserActivityAt: number = Date.now();
+  private fallbackActivityHandler: (() => void) | null = null;
 
   // Callback when a pomodoro completes (to increment active task count)
   public onPomodoroComplete?: () => void;
@@ -39,6 +54,17 @@ export class TimerService {
     this.mode = settings.currentMode || "pomodoro";
     this.round = settings.pomodoroRound || 1;
     this.initDurationForMode(this.mode);
+    if (this.getSystemIdleSeconds() === null && typeof window !== "undefined") {
+      this.fallbackActivityHandler = () => {
+        if (this.isRunning) {
+          this.lastUserActivityAt = Date.now();
+        }
+      };
+      window.addEventListener("pointerdown", this.fallbackActivityHandler, { passive: true, capture: true });
+      window.addEventListener("keydown", this.fallbackActivityHandler, { passive: true, capture: true });
+      window.addEventListener("wheel", this.fallbackActivityHandler, { passive: true, capture: true });
+      window.addEventListener("touchstart", this.fallbackActivityHandler, { passive: true, capture: true });
+    }
   }
 
   public subscribe(listener: Listener): () => void {
@@ -62,6 +88,73 @@ export class TimerService {
     }
   }
 
+  public recordUserActivity(): void {
+    this.lastUserActivityAt = Date.now();
+    if (this.autoPaused) {
+      this.autoPaused = false;
+      this.notify();
+    }
+  }
+
+  private getSystemIdleSeconds(): number | null {
+    try {
+      const winWithReq = window as unknown as { require?: (mod: string) => unknown };
+      const req: ((mod: string) => unknown) | null =
+        typeof winWithReq.require === "function"
+          ? winWithReq.require
+          : typeof require === "function"
+            ? (require as (mod: string) => unknown)
+            : null;
+      if (!req) return null;
+
+      const electron = req("electron") as ElectronApi | undefined;
+      let powerMonitor = electron?.powerMonitor || electron?.remote?.powerMonitor;
+      if (!powerMonitor) {
+        try {
+          const remoteMod = req("@electron/remote") as { powerMonitor?: ElectronPowerMonitor } | undefined;
+          powerMonitor = remoteMod?.powerMonitor;
+        } catch {
+          // @electron/remote may not be exposed
+        }
+      }
+
+      if (typeof powerMonitor?.getSystemIdleTime === "function") {
+        const idleSec = powerMonitor.getSystemIdleTime();
+        if (typeof idleSec === "number" && Number.isFinite(idleSec) && idleSec >= 0) {
+          return idleSec;
+        }
+      }
+    } catch {
+      // Fallback to window activity listeners when Electron powerMonitor is unavailable
+    }
+    return null;
+  }
+
+  private getIdleSeconds(): number {
+    const sinceUserControlSec = Math.max(0, Math.floor((Date.now() - this.lastUserActivityAt) / 1000));
+    const systemIdleSec = this.getSystemIdleSeconds();
+    if (systemIdleSec !== null) {
+      return Math.min(systemIdleSec, sinceUserControlSec);
+    }
+    return sinceUserControlSec;
+  }
+
+  private getAutoPauseThresholdMinutes(): number {
+    return Math.max(1, Math.min(720, Math.round(Number(this.settings.autoPauseMinutes) || 30)));
+  }
+
+  private shouldAutoPause(): boolean {
+    if (!this.isRunning || !this.settings.autoPauseEnabled) return false;
+    return this.getIdleSeconds() >= this.getAutoPauseThresholdMinutes() * 60;
+  }
+
+  private triggerAutoPause(): void {
+    this.soundService.stopSound();
+    this.pause(true);
+    const mins = this.getAutoPauseThresholdMinutes();
+    NotificationService.notice(`Pomofocus auto-paused after ${mins}m idle`);
+  }
+
   public getState(): TimerState {
     const minutes = Math.floor(this.remainingSeconds / 60);
     const seconds = this.remainingSeconds % 60;
@@ -74,13 +167,21 @@ export class TimerService {
       totalSeconds: this.totalSeconds,
       round: this.round,
       formattedTime,
+      autoPaused: this.autoPaused,
     };
   }
 
   public updateSettings(newSettings: PomofocusSettings): void {
     this.settings = newSettings;
+    if (!newSettings.autoPauseEnabled) {
+      this.autoPaused = false;
+    }
     if (!this.isRunning) {
-      this.initDurationForMode(this.mode);
+      const nextTotalSeconds = this.getDurationMinutesForMode(this.mode) * 60;
+      if (nextTotalSeconds !== this.totalSeconds) {
+        this.totalSeconds = nextTotalSeconds;
+        this.remainingSeconds = nextTotalSeconds;
+      }
       this.notify();
     }
   }
@@ -102,20 +203,28 @@ export class TimerService {
     this.remainingSeconds = this.totalSeconds;
   }
 
-  public switchMode(targetMode: TimerMode, autoStart: boolean = false): void {
+  public switchMode(targetMode: TimerMode, autoStart: boolean = false, isAutoAdvance: boolean = false): void {
+    if (!isAutoAdvance) {
+      this.lastUserActivityAt = Date.now();
+    }
+    this.autoPaused = false;
     this.pause();
     this.mode = targetMode;
     this.initDurationForMode(targetMode);
     if (autoStart) {
-      this.start();
+      this.start(isAutoAdvance);
     } else {
       this.notify();
     }
     this.emitStateChange();
   }
 
-  public start(): void {
+  public start(isAutoStart: boolean = false): void {
     if (this.isRunning) return;
+    if (!isAutoStart) {
+      this.lastUserActivityAt = Date.now();
+    }
+    this.autoPaused = false;
     if (this.remainingSeconds <= 0) {
       this.initDurationForMode(this.mode);
     }
@@ -136,8 +245,14 @@ export class TimerService {
     this.notify();
   }
 
-  public pause(): void {
-    if (!this.isRunning) return;
+  public pause(triggeredByAutoPause: boolean = false): void {
+    this.autoPaused = triggeredByAutoPause;
+    if (!this.isRunning) {
+      if (triggeredByAutoPause) {
+        this.notify();
+      }
+      return;
+    }
     this.isRunning = false;
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
@@ -150,13 +265,16 @@ export class TimerService {
 
   public toggle(): void {
     if (this.isRunning) {
+      this.recordUserActivity();
       this.pause();
     } else {
-      this.start();
+      this.start(false);
     }
   }
 
   public reset(): void {
+    this.lastUserActivityAt = Date.now();
+    this.autoPaused = false;
     this.pause();
     this.initDurationForMode(this.mode);
     this.notify();
@@ -164,10 +282,17 @@ export class TimerService {
   }
 
   public skip(): void {
+    this.lastUserActivityAt = Date.now();
+    this.autoPaused = false;
     this.completeCurrentPeriod(false);
   }
 
   private tick(): void {
+    if (this.shouldAutoPause()) {
+      this.triggerAutoPause();
+      return;
+    }
+
     const diffMs = this.targetEndTime - Date.now();
     const remaining = Math.max(0, Math.round(diffMs / 1000));
 
@@ -214,11 +339,11 @@ export class TimerService {
       // Check if long break interval reached
       const isLongBreak = this.round % this.settings.longBreakInterval === 0;
       const nextMode: TimerMode = isLongBreak ? "longBreak" : "shortBreak";
-      this.switchMode(nextMode, this.settings.autoStartBreaks);
+      this.switchMode(nextMode, this.settings.autoStartBreaks, true);
     } else {
       // Finished a break
       this.round += 1;
-      this.switchMode("pomodoro", this.settings.autoStartPomodoros);
+      this.switchMode("pomodoro", this.settings.autoStartPomodoros, true);
     }
   }
 
@@ -230,6 +355,13 @@ export class TimerService {
     if (this.intervalId !== null) {
       window.clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this.fallbackActivityHandler && typeof window !== "undefined") {
+      window.removeEventListener("pointerdown", this.fallbackActivityHandler, true);
+      window.removeEventListener("keydown", this.fallbackActivityHandler, true);
+      window.removeEventListener("wheel", this.fallbackActivityHandler, true);
+      window.removeEventListener("touchstart", this.fallbackActivityHandler, true);
+      this.fallbackActivityHandler = null;
     }
     this.listeners.clear();
   }

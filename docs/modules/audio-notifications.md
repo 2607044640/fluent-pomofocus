@@ -40,6 +40,7 @@ Alarm playback (cached MP3 or oscillator fallback) and dual-channel notices. Sou
 | `SoundService.playSound` | `(type: SoundType, volumePercent: number, repeat: number) => Promise<void>` | Stops prior audio; starts buffer or synth repeats |
 | `NotificationService.requestPermissionIfNeeded` | `() => void` (static) | `Notification.requestPermission()` if `"default"` |
 | `NotificationService.focusObsidianWindow` | `() => void` (static) | `window.focus`; Electron restore/show/focus |
+| `NotificationService.notice` | `(message: string, durationMs?: number) => void` (static) | In-app `new Notice` only (no OS popup; used by idle auto-pause) |
 | `NotificationService.notify` | `(title: string, message?: string, onClick?: () => void) => void` (static) | `new Notice(..., 6000)`; optional native `Notification` |
 
 ## Recipes

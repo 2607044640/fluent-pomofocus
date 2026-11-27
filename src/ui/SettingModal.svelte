@@ -87,6 +87,10 @@
     const breakSound = separateBreakSound ? (s.breakAlarmSound || focusSound) : focusSound;
     return {
       ...s,
+      autoStartBreaks: Boolean(s.autoStartBreaks),
+      autoStartPomodoros: Boolean(s.autoStartPomodoros),
+      autoPauseEnabled: Boolean(s.autoPauseEnabled),
+      autoPauseMinutes: Math.max(1, Math.min(720, Math.round(Number(s.autoPauseMinutes) || 30))),
       pomoTime: Math.max(1, Number(s.pomoTime) || 1),
       shortBreakTime: Math.max(1, Number(s.shortBreakTime) || 1),
       longBreakTime: Math.max(1, Number(s.longBreakTime) || 1),
@@ -250,6 +254,29 @@
             max="12"
             class="pomo-num-input"
             bind:value={localSettings.longBreakInterval}
+            on:input={() => syncChanges(false)}
+            on:change={() => syncChanges(true)}
+          />
+        </div>
+
+        <div class="pomo-switch-row">
+          <span>Auto-Pause when idle (无操作自动暂停)</span>
+          <input
+            type="checkbox"
+            class="pomo-toggle"
+            bind:checked={localSettings.autoPauseEnabled}
+            on:change={() => syncChanges(true)}
+          />
+        </div>
+
+        <div class="pomo-input-row">
+          <span>Idle timeout (minutes)</span>
+          <input
+            type="number"
+            min="1"
+            max="720"
+            class="pomo-num-input"
+            bind:value={localSettings.autoPauseMinutes}
             on:input={() => syncChanges(false)}
             on:change={() => syncChanges(true)}
           />

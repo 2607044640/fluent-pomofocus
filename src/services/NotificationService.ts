@@ -57,6 +57,10 @@ export class NotificationService {
     }
   }
 
+  public static notice(message: string, durationMs: number = 5000): void {
+    new Notice(message, durationMs);
+  }
+
   public static notify(title: string, message?: string, onClick?: () => void): void {
     // 1. In-app Notice
     const noticeText = message ? `${title}\n${message}` : title;

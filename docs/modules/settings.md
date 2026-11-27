@@ -44,6 +44,7 @@ Schema, defaults, vault-file I/O, and dual-alarm migration. Sources: `src/models
 | `pomoTime` / `shortBreakTime` / `longBreakTime` | `50` / `10` / `20` (minutes) |
 | `longBreakInterval` | `3` |
 | `autoStartBreaks` / `autoStartPomodoros` | `true` |
+| `autoPauseEnabled` / `autoPauseMinutes` | `false` / `30` (1–720 min idle auto-pause) |
 | `enableTasks` / `autoCheckTasks` / `checkToBottom` | `true` / `false` / `true` |
 | `alarmSound` / `alarmVolume` / `alarmRepeat` | `"wood"` / `80` / `2` (legacy mirrors) |
 | `focusSound` | `"none"` (persisted; unused by current UI) |

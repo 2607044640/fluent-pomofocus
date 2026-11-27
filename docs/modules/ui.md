@@ -20,7 +20,7 @@ Timer chrome, task list, in-app settings overlay, and floating modal host. Sourc
 
 1. Host (`PomofocusViewWrapper.onOpen` or `PomofocusModal.onOpen`) constructs `PomofocusView` with `app`, `plugin`, `settings`, `timerService`, `soundService`, `onSaveSettings`, `onOpenSmallWindow`, optional `isModal`/`onClose`.
 2. `onMount`: `timerService.subscribe` → `timerState`; `plugin.onSettingsChange` copies settings; assign `onPomodoroComplete`.
-3. User START/PAUSE → `timerService.toggle()`; skip → `timerService.skip()` (skip button shown when `isRunning` or `remainingSeconds < totalSeconds`); tab → `switchMode(mode, false)` + save.
+3. User START/PAUSE → `timerService.toggle()`; skip → `timerService.skip()` (skip button shown when `isRunning` or `remainingSeconds < totalSeconds`); tab → `switchMode(mode, false)` + save; on-screen **Auto-Pause** pill + minutes input → `updateAndBroadcastSettings({ autoPauseEnabled, autoPauseMinutes }, "view")` (synced in `SettingModal` under `⏱ TIMER`). When `timerState.autoPaused` is true, status text reports `"Auto-paused after Xm idle"`.
 4. Task add/complete/delete/clear → mutate `settings.tasks` / `activeTaskId` → `onSaveSettings()`.
 5. Setting button → `showSettingModal = true` → `SettingModal` with `createEventDispatcher` `close` / `save`.
 6. Modal inputs `syncChanges(immediate)` (200 ms debounce unless immediate) → `sanitize` (min durations 1, volume 0–100, repeat 1–10) → `updateAndBroadcastSettings`.

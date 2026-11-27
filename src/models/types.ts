@@ -38,6 +38,8 @@ export interface PomofocusSettings {
   // Automation
   autoStartBreaks: boolean;
   autoStartPomodoros: boolean;
+  autoPauseEnabled: boolean;
+  autoPauseMinutes: number;
 
   // Tasks behavior
   enableTasks: boolean;
@@ -81,6 +83,8 @@ export const DEFAULT_SETTINGS: PomofocusSettings = {
 
   autoStartBreaks: true,
   autoStartPomodoros: true,
+  autoPauseEnabled: false,
+  autoPauseMinutes: 30,
 
   enableTasks: true,
   autoCheckTasks: false,

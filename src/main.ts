@@ -73,8 +73,10 @@ export default class FluentPomofocusPlugin extends Plugin {
     source?: string
   ): Promise<void> {
     Object.assign(this.settings, newSettings);
-    await this.saveSettings();
     this.timerService.updateSettings(this.settings);
+    if ("autoPauseEnabled" in newSettings || "autoPauseMinutes" in newSettings) {
+      this.timerService.recordUserActivity();
+    }
     for (const listener of this.settingsListeners) {
       try {
         listener(this.settings, source);
@@ -82,6 +84,7 @@ export default class FluentPomofocusPlugin extends Plugin {
         console.error("Error in settings listener:", e);
       }
     }
+    await this.saveSettings();
   }
 
   async onload(): Promise<void> {

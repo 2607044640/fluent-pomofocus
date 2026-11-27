@@ -13,6 +13,7 @@
     MoreVertical,
     Trash2,
     SkipForward,
+    Moon,
     X,
   } from "lucide-svelte";
 
@@ -36,6 +37,14 @@
   let isAddingTask: boolean = false;
   let newTaskTitle: string = "";
   let newTaskEst: number = 1;
+  let autoPauseMinutesInput: string = String(clampAutoPauseMinutes(settings.autoPauseMinutes));
+  let autoPauseInputEl: HTMLInputElement | null = null;
+
+  function clampAutoPauseMinutes(val: unknown): number {
+    const parsed = Math.round(Number(val));
+    if (!Number.isFinite(parsed) || parsed <= 0) return 30;
+    return Math.max(1, Math.min(720, parsed));
+  }
 
   onMount(() => {
     unsubscribeTimer = timerService.subscribe((state) => {
@@ -44,6 +53,9 @@
 
     unsubscribeSettings = plugin.onSettingsChange((newSettings) => {
       settings = { ...newSettings };
+      if (document.activeElement !== autoPauseInputEl) {
+        autoPauseMinutesInput = String(clampAutoPauseMinutes(newSettings.autoPauseMinutes));
+      }
     });
 
     timerService.onPomodoroComplete = () => {
@@ -198,6 +210,43 @@
     }
     showSettingModal = true;
   }
+
+  function toggleAutoPause() {
+    const mins = clampAutoPauseMinutes(autoPauseMinutesInput);
+    autoPauseMinutesInput = String(mins);
+    const nextEnabled = !settings.autoPauseEnabled;
+    settings = { ...settings, autoPauseEnabled: nextEnabled, autoPauseMinutes: mins };
+    void plugin.updateAndBroadcastSettings(
+      { autoPauseEnabled: nextEnabled, autoPauseMinutes: mins },
+      "view"
+    );
+  }
+
+  function handleAutoPauseMinutesInput(e: Event) {
+    const raw = (e.currentTarget as HTMLInputElement).value;
+    autoPauseMinutesInput = raw;
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    const parsed = Math.round(Number(trimmed));
+    if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 720) {
+      void plugin.updateAndBroadcastSettings({ autoPauseMinutes: parsed }, "view");
+    }
+  }
+
+  function commitAutoPauseMinutes() {
+    const clamped = clampAutoPauseMinutes(autoPauseMinutesInput);
+    autoPauseMinutesInput = String(clamped);
+    if (clamped !== settings.autoPauseMinutes) {
+      void plugin.updateAndBroadcastSettings({ autoPauseMinutes: clamped }, "view");
+    }
+  }
+
+  function handleAutoPauseMinutesKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      (e.currentTarget as HTMLInputElement).blur();
+    }
+  }
 </script>
 
 <div
@@ -279,10 +328,45 @@
       </div>
     </div>
 
-    <!-- STATUS MESSAGE -->
+    <!-- STATUS MESSAGE & AUTO-PAUSE GUARD -->
     <div class="pomo-sub-info">
-      <div class="pomo-status-msg">
-        {timerState.mode === "pomodoro" ? "Time to focus!" : "Time for a break!"}
+      <div class="pomo-status-msg" class:is-auto-paused={timerState.autoPaused}>
+        {#if timerState.autoPaused}
+          Auto-paused after {clampAutoPauseMinutes(settings.autoPauseMinutes)}m idle
+        {:else}
+          {timerState.mode === "pomodoro" ? "Time to focus!" : "Time for a break!"}
+        {/if}
+      </div>
+
+      <div class="pomo-autopause-bar" class:is-enabled={settings.autoPauseEnabled}>
+        <button
+          type="button"
+          class="pomo-autopause-btn"
+          class:active={settings.autoPauseEnabled}
+          aria-pressed={settings.autoPauseEnabled}
+          on:click={toggleAutoPause}
+          title="Click to enable/disable auto-pause when left unattended (点击开启/关闭：超过设定时间无操作自动暂停)"
+        >
+          <Moon size={13} />
+          <span>Auto-Pause</span>
+          <span class="pomo-autopause-state">{settings.autoPauseEnabled ? "ON" : "OFF"}</span>
+        </button>
+
+        <div class="pomo-autopause-time-wrap" title="Idle duration in minutes before auto-pausing (无操作自动暂停分钟数)">
+          <input
+            bind:this={autoPauseInputEl}
+            type="number"
+            min="1"
+            max="720"
+            class="pomo-autopause-input"
+            aria-label="Auto-pause idle minutes"
+            value={autoPauseMinutesInput}
+            on:input={handleAutoPauseMinutesInput}
+            on:blur={commitAutoPauseMinutes}
+            on:keydown={handleAutoPauseMinutesKeydown}
+          />
+          <span class="pomo-autopause-unit">min</span>
+        </div>
       </div>
     </div>
 
@@ -667,8 +751,13 @@
   }
 
   .pomo-sub-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
     text-align: center;
-    margin: 10px 0 14px 0;
+    margin: 12px 0 14px 0;
+    width: 100%;
   }
 
   .pomo-status-msg {
@@ -676,8 +765,137 @@
     font-weight: 500;
     color: rgba(255, 255, 255, 0.85);
   }
+  .pomo-status-msg.is-auto-paused {
+    color: #fde68a;
+    font-weight: 600;
+  }
   .theme-obsidian .pomo-status-msg {
     color: var(--text-muted);
+  }
+  .theme-obsidian .pomo-status-msg.is-auto-paused {
+    color: var(--interactive-accent);
+  }
+
+  .pomo-autopause-bar {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px 4px 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    max-width: 100%;
+    box-sizing: border-box;
+    transition: border-color 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .theme-obsidian .pomo-autopause-bar {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+  }
+  .theme-obsidian .pomo-autopause-bar.is-enabled {
+    border-color: var(--interactive-accent);
+  }
+
+  .pomo-autopause-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+      color 150ms cubic-bezier(0.2, 0, 0, 1),
+      border-color 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .pomo-autopause-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+  }
+  .pomo-autopause-btn.active {
+    background: rgba(255, 255, 255, 0.24);
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .theme-obsidian .pomo-autopause-btn {
+    color: var(--text-muted);
+  }
+  .theme-obsidian .pomo-autopause-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+  }
+  .theme-obsidian .pomo-autopause-btn.active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent, #ffffff);
+  }
+
+  .pomo-autopause-state {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    opacity: 0.9;
+  }
+
+  .pomo-autopause-time-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pomo-autopause-input {
+    width: 44px;
+    height: 24px;
+    padding: 0 4px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.18);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    box-shadow: none;
+    box-sizing: border-box;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .pomo-autopause-input::-webkit-outer-spin-button,
+  .pomo-autopause-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .theme-obsidian .pomo-autopause-input {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+  }
+  .theme-obsidian .pomo-autopause-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+  }
+
+  .pomo-autopause-unit {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    user-select: none;
+  }
+  .theme-obsidian .pomo-autopause-unit {
+    color: var(--text-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pomo-app-wrapper .pomo-autopause-bar,
+    .pomo-app-wrapper .pomo-autopause-btn {
+      transition-duration: 0.01ms;
+    }
   }
 
   .pomo-tasks-section {
